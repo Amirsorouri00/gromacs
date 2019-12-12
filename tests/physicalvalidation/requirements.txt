@@ -1,0 +1,5 @@
+numpy==1.17.4
+pkg-resources==0.0.0
+pymbar==3.0.4
+scipy==1.3.3
+six==1.13.0
