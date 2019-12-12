@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2014,2015,2019, by the GROMACS development team, led by
+ * Copyright (c) 2014,2015, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -72,13 +72,16 @@ using gmx::test::NoTextMatch;
  */
 
 //! Test fixture for the select analysis module.
-typedef gmx::test::TrajectoryAnalysisModuleTestFixture<gmx::analysismodules::PairDistanceInfo> PairDistanceModuleTest;
+typedef gmx::test::TrajectoryAnalysisModuleTestFixture<gmx::analysismodules::PairDistanceInfo>
+    PairDistanceModuleTest;
 
 TEST_F(PairDistanceModuleTest, ComputesAllDistances)
 {
-    const char* const cmdline[] = { "pairdist",     "-ref",         "resindex 1",
-                                    "-refgrouping", "none",         "-sel",
-                                    "resindex 3",   "-selgrouping", "none" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1", "-refgrouping", "none",
+        "-sel", "resindex 3", "-selgrouping", "none"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));
@@ -86,9 +89,12 @@ TEST_F(PairDistanceModuleTest, ComputesAllDistances)
 
 TEST_F(PairDistanceModuleTest, ComputesAllDistancesWithCutoff)
 {
-    const char* const cmdline[] = { "pairdist", "-ref",    "resindex 1", "-refgrouping",
-                                    "none",     "-sel",    "resindex 3", "-selgrouping",
-                                    "none",     "-cutoff", "1.5" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1", "-refgrouping", "none",
+        "-sel", "resindex 3", "-selgrouping", "none",
+        "-cutoff", "1.5"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));
@@ -96,8 +102,12 @@ TEST_F(PairDistanceModuleTest, ComputesAllDistancesWithCutoff)
 
 TEST_F(PairDistanceModuleTest, ComputesMinDistanceWithCutoff)
 {
-    const char* const cmdline[] = { "pairdist",   "-ref",    "resindex 1", "-sel",
-                                    "resindex 3", "-cutoff", "1.5" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1",
+        "-sel", "resindex 3",
+        "-cutoff", "1.5"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));
@@ -105,8 +115,12 @@ TEST_F(PairDistanceModuleTest, ComputesMinDistanceWithCutoff)
 
 TEST_F(PairDistanceModuleTest, ComputesMaxDistance)
 {
-    const char* const cmdline[] = { "pairdist",   "-ref",  "resindex 1", "-sel",
-                                    "resindex 3", "-type", "max" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1",
+        "-sel", "resindex 3",
+        "-type", "max"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));
@@ -114,8 +128,12 @@ TEST_F(PairDistanceModuleTest, ComputesMaxDistance)
 
 TEST_F(PairDistanceModuleTest, ComputesMaxDistanceWithCutoff)
 {
-    const char* const cmdline[] = { "pairdist", "-ref", "resindex 1", "-sel", "resindex 3",
-                                    "-cutoff",  "1.5",  "-type",      "max" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1",
+        "-sel", "resindex 3",
+        "-cutoff", "1.5", "-type", "max"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));
@@ -123,10 +141,12 @@ TEST_F(PairDistanceModuleTest, ComputesMaxDistanceWithCutoff)
 
 TEST_F(PairDistanceModuleTest, ComputesGroupedMinDistanceWithCutoff)
 {
-    const char* const cmdline[] = { "pairdist",        "-ref",         "resindex 1 to 2",
-                                    "-refgrouping",    "res",          "-sel",
-                                    "resindex 3 to 5", "-selgrouping", "res",
-                                    "-cutoff",         "2.5" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1 to 2", "-refgrouping", "res",
+        "-sel", "resindex 3 to 5", "-selgrouping", "res",
+        "-cutoff", "2.5"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));
@@ -134,19 +154,12 @@ TEST_F(PairDistanceModuleTest, ComputesGroupedMinDistanceWithCutoff)
 
 TEST_F(PairDistanceModuleTest, ComputesGroupedMaxDistanceWithCutoff)
 {
-    const char* const cmdline[] = { "pairdist",
-                                    "-ref",
-                                    "resindex 1 to 2",
-                                    "-refgrouping",
-                                    "res",
-                                    "-sel",
-                                    "resindex 3 to 5",
-                                    "-selgrouping",
-                                    "res",
-                                    "-cutoff",
-                                    "3.5",
-                                    "-type",
-                                    "max" };
+    const char *const cmdline[] = {
+        "pairdist",
+        "-ref", "resindex 1 to 2", "-refgrouping", "res",
+        "-sel", "resindex 3 to 5", "-selgrouping", "res",
+        "-cutoff", "3.5", "-type", "max"
+    };
     setTopology("simple.gro");
     setOutputFile("-o", ".xvg", NoTextMatch());
     runTest(CommandLine(cmdline));

@@ -1,7 +1,7 @@
 #
 # This file is part of the GROMACS molecular simulation package.
 #
-# Copyright (c) 2012,2013,2014,2015,2016,2017,2018,2019, by the GROMACS development team, led by
+# Copyright (c) 2012,2013,2014,2015,2016,2017,2018, by the GROMACS development team, led by
 # Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
 # and including many others, as listed in the AUTHORS file in the
 # top-level source directory and at http://www.gromacs.org.
@@ -167,7 +167,7 @@ if(REGRESSIONTEST_PATH)
     endif()
 
     #currently not testing tools because they don't contain any useful tests
-    foreach(subtest complex freeenergy rotation essentialdynamics)
+    foreach(subtest simple complex kernel freeenergy rotation essentialdynamics)
         add_test(NAME regressiontests/${subtest}
             #windows requires the command to be perl and not the script
             COMMAND perl "${REGRESSIONTEST_PATH}/gmxtest.pl" ${subtest} ${ARGS})
@@ -183,7 +183,6 @@ endif()
 # Physical validation tests are opt-in via -DGMX_PHYSICAL_VALIDATION=ON
 #
 if(GMX_PHYSICAL_VALIDATION)
-    include(FindPythonModule)
     # physical validation suite is distributed with the source
     set(PHYSVALTEST_SOURCE_PATH
             "${CMAKE_CURRENT_SOURCE_DIR}/physicalvalidation")
@@ -277,11 +276,21 @@ if(GMX_PHYSICAL_VALIDATION)
         # End copied from regression tests.
         #
 
-        if (NOT PYTHONINTERP_FOUND)
+        #
+        # TODO: Switch to python >= 3.3. For now, use 2.7 for compatibility with rest of build system.
+        #
+        # ${PYTHON_EXECUTABLE} can only be set for one version per build system.
+        # Currently, the following files set 2.7 explicitly:
+        # * cmake/CheckTarget.cmake
+        # * docs/CMakeList.txt
+        # Parts of the documentation rely on python scripts.
+        # These need to be ported to be able to make the move to python 3.
+        #
+        if (NOT PYTHON_EXECUTABLE)
             message(FATAL_ERROR
-                    "Python not found. Physical validation requires python. \
-                     Install python, set PYTHON_EXECUTABLE to a valid python location, \
-                     or set GMX_PHYSICAL_VALIDATION=OFF to disable the physical validation tests.")
+                    "Python not found. Physical validation relies on python >= 3.3 (python 2.7 supported, but\
+                    deprecated). Install python, set PYTHON_EXECUTABLE to the python location, or set\
+                    GMX_PHYSCIAL_VALIDATION=OFF to disable the physical validation tests.")
         endif()
         #
         foreach(module numpy scipy pymbar) # add further modules if necessary
@@ -290,7 +299,7 @@ if(GMX_PHYSICAL_VALIDATION)
             if(NOT PYTHONMODULE_${module_upper})
                 message(WARNING
                         "Python module ${module} not found. Physical validation relies on ${module}. Make sure\
-                        ${module} can be found by PYTHON_EXECUTABLE, or set GMX_PHYSICAL_VALIDATION=OFF to disable\
+                        ${module} can be found by PYTHON_EXECUTABLE, or set GMX_PHYSCIAL_VALIDATION=OFF to disable\
                         the physical validation tests.")
             endif()
         endforeach()

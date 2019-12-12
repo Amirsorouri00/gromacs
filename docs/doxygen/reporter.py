@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 #
 # This file is part of the GROMACS molecular simulation package.
 #
-# Copyright (c) 2014,2018,2019, by the GROMACS development team, led by
+# Copyright (c) 2014,2018, by the GROMACS development team, led by
 # Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
 # and including many others, as listed in the AUTHORS file in the
 # top-level source directory and at http://www.gromacs.org.
@@ -34,7 +34,6 @@
 # the research papers on the package. Check out http://www.gromacs.org.
 
 import sys
-import functools
 
 from fnmatch import fnmatch
 
@@ -49,7 +48,6 @@ other in the output, as well as filtering to make it possible to suppress
 certain messages.
 """
 
-@functools.total_ordering
 class Location(object):
 
     """Location for a reported message."""
@@ -63,7 +61,7 @@ class Location(object):
         self.filename = filename
         self.line = line
 
-    def __bool__(self):
+    def __nonzero__(self):
         """Make empty locations False in boolean context."""
         return self.filename is not None
 
@@ -76,28 +74,13 @@ class Location(object):
         else:
             return '<unknown>'
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         """Sort locations based on file name and line number."""
-        return self.filename == other.filename and self.line == other.line
+        result = cmp(self.filename, other.filename)
+        if not self.filename or result != 0:
+            return result
+        return cmp(self.line, other.line)
 
-    def __lt__(self, other):
-        """Sort locations based on file name and line number."""
-        if self.filename != other.filename:
-            if other.filename is None:
-                return False
-            if self.filename is None:
-                return True
-            return self.filename < other.filename
-        else:
-            if not self.filename:
-                return False
-            if other.line is None:
-                return False
-            if self.line is None:
-                return True
-            return self.line < other.line
-
-@functools.total_ordering
 class Message(object):
 
     """Single reported message.
@@ -126,13 +109,9 @@ class Message(object):
         self.message = message
         self.details = details
 
-    def __eq__(self, other):
+    def __cmp__(self, other):
         """Sort messages based on file name and line number."""
-        return self.location == other.location
-
-    def __lt__(self, other):
-        """Sort messages based on file name and line number."""
-        return self.location < other.location
+        return cmp(self.location, other.location)
 
 class Filter(object):
 

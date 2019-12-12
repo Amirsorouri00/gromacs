@@ -56,9 +56,9 @@
 #include "gromacs/utility/futil.h"
 #include "gromacs/utility/smalloc.h"
 
-static void get_coordnum_fp(FILE* in, char* title, int* natoms)
+static void get_coordnum_fp(FILE *in, char *title, int *natoms)
 {
-    char line[STRLEN + 1];
+    char line[STRLEN+1];
 
     fgets2(title, STRLEN, in);
     fgets2(line, STRLEN, in);
@@ -68,9 +68,9 @@ static void get_coordnum_fp(FILE* in, char* title, int* natoms)
     }
 }
 
-void get_coordnum(const char* infile, int* natoms)
+void get_coordnum(const char *infile, int *natoms)
 {
-    FILE* in;
+    FILE *in;
     char  title[STRLEN];
 
     in = gmx_fio_fopen(infile, "r");
@@ -83,25 +83,19 @@ void get_coordnum(const char* infile, int* natoms)
  * We have removed writing of variable precision to avoid compatibility
  * issues with other software packages.
  */
-static gmx_bool get_w_conf(FILE*       in,
-                           const char* infile,
-                           char*       title,
-                           t_symtab*   symtab,
-                           t_atoms*    atoms,
-                           int*        ndec,
-                           rvec        x[],
-                           rvec*       v,
-                           matrix      box)
+static gmx_bool get_w_conf(FILE *in, const char *infile, char *title,
+                           t_symtab *symtab, t_atoms *atoms, int *ndec,
+                           rvec x[], rvec *v, matrix box)
 {
-    char     name[6];
-    char     resname[6], oldresname[6];
-    char     line[STRLEN + 1], *ptr;
-    char     buf[256];
-    double   x1, y1, z1, x2, y2, z2;
-    rvec     xmin, xmax;
-    int      natoms, i, m, resnr, newres, oldres, ddist, c;
-    gmx_bool bFirst, bVel, oldResFirst;
-    char *   p1, *p2, *p3;
+    char       name[6];
+    char       resname[6], oldresname[6];
+    char       line[STRLEN+1], *ptr;
+    char       buf[256];
+    double     x1, y1, z1, x2, y2, z2;
+    rvec       xmin, xmax;
+    int        natoms, i, m, resnr, newres, oldres, ddist, c;
+    gmx_bool   bFirst, bVel, oldResFirst;
+    char      *p1, *p2, *p3;
 
     oldres      = -1;
     newres      = -1;
@@ -113,14 +107,13 @@ static gmx_bool get_w_conf(FILE*       in,
 
     if (natoms > atoms->nr)
     {
-        gmx_fatal(FARGS, "gro file contains more atoms (%d) than expected (%d)", natoms, atoms->nr);
+        gmx_fatal(FARGS, "gro file contains more atoms (%d) than expected (%d)",
+                  natoms, atoms->nr);
     }
-    else if (natoms < atoms->nr)
+    else if (natoms <  atoms->nr)
     {
-        fprintf(stderr,
-                "Warning: gro file contains less atoms (%d) than expected"
-                " (%d)\n",
-                natoms, atoms->nr);
+        fprintf(stderr, "Warning: gro file contains less atoms (%d) than expected"
+                " (%d)\n", natoms, atoms->nr);
     }
 
     atoms->haveMass    = FALSE;
@@ -133,19 +126,20 @@ static gmx_bool get_w_conf(FILE*       in,
 
     bVel = FALSE;
 
-    resname[0]    = '\0';
-    oldresname[0] = '\0';
+    resname[0]     = '\0';
+    oldresname[0]  = '\0';
 
     /* just pray the arrays are big enough */
     for (i = 0; (i < natoms); i++)
     {
         if ((fgets2(line, STRLEN, in)) == nullptr)
         {
-            gmx_fatal(FARGS, "Unexpected end of file in file %s at line %d", infile, i + 2);
+            gmx_fatal(FARGS, "Unexpected end of file in file %s at line %d",
+                      infile, i+2);
         }
         if (strlen(line) < 39)
         {
-            gmx_fatal(FARGS, "Invalid line in %s for atom %d:\n%s", infile, i + 1, line);
+            gmx_fatal(FARGS, "Invalid line in %s for atom %d:\n%s", infile, i+1, line);
         }
 
         /* determine read precision from distance between periods
@@ -174,10 +168,7 @@ static gmx_bool get_w_conf(FILE*       in,
 
             if (p3 - p2 != ddist)
             {
-                gmx_fatal(FARGS,
-                          "The spacing of the decimal points in file %s is not consistent for x, y "
-                          "and z",
-                          infile);
+                gmx_fatal(FARGS, "The spacing of the decimal points in file %s is not consistent for x, y and z", infile);
             }
         }
 
@@ -185,7 +176,7 @@ static gmx_bool get_w_conf(FILE*       in,
         memcpy(name, line, 5);
         name[5] = '\0';
         sscanf(name, "%d", &resnr);
-        sscanf(line + 5, "%5s", resname);
+        sscanf(line+5, "%5s", resname);
 
         if (!oldResFirst || oldres != resnr || strncmp(resname, oldresname, sizeof(resname)) != 0)
         {
@@ -194,7 +185,8 @@ static gmx_bool get_w_conf(FILE*       in,
             newres++;
             if (newres >= natoms)
             {
-                gmx_fatal(FARGS, "More residues than atoms in %s (natoms = %d)", infile, natoms);
+                gmx_fatal(FARGS, "More residues than atoms in %s (natoms = %d)",
+                          infile, natoms);
             }
             atoms->atom[i].resind = newres;
             t_atoms_set_resinfo(atoms, i, symtab, resname, resnr, ' ', 0, ' ');
@@ -205,7 +197,7 @@ static gmx_bool get_w_conf(FILE*       in,
         }
 
         /* atomname */
-        std::memcpy(name, line + 10, 5);
+        std::memcpy(name, line+10, 5);
         atoms->atomname[i] = put_symtab(symtab, name);
 
         /* Copy resname to oldresname after we are done with the sanity check above */
@@ -226,10 +218,7 @@ static gmx_bool get_w_conf(FILE*       in,
             buf[c] = '\0';
             if (sscanf(buf, "%lf %lf", &x1, &x2) != 1)
             {
-                gmx_fatal(FARGS,
-                          "Something is wrong in the coordinate formatting of file %s. Note that "
-                          "gro is fixed format (see the manual)",
-                          infile);
+                gmx_fatal(FARGS, "Something is wrong in the coordinate formatting of file %s. Note that gro is fixed format (see the manual)", infile);
             }
             else
             {
@@ -291,10 +280,10 @@ static gmx_bool get_w_conf(FILE*       in,
         }
         for (m = 0; (m < DIM); m++)
         {
-            box[m][m] = (xmax[m] - xmin[m]);
+            box[m][m] = (xmax[m]-xmin[m]);
         }
-        fprintf(stderr, "Generated a cubic box %8.3f x %8.3f x %8.3f\n", box[XX][XX], box[YY][YY],
-                box[ZZ][ZZ]);
+        fprintf(stderr, "Generated a cubic box %8.3f x %8.3f x %8.3f\n",
+                box[XX][XX], box[YY][YY], box[ZZ][ZZ]);
     }
     else
     {
@@ -302,7 +291,8 @@ static gmx_bool get_w_conf(FILE*       in,
         box[XX][XX] = x1;
         box[YY][YY] = y1;
         box[ZZ][ZZ] = z1;
-        if (sscanf(line, "%*f%*f%*f%lf%lf%lf%lf%lf%lf", &x1, &y1, &z1, &x2, &y2, &z2) != 6)
+        if (sscanf (line, "%*f%*f%*f%lf%lf%lf%lf%lf%lf",
+                    &x1, &y1, &z1, &x2, &y2, &z2) != 6)
         {
             x1 = y1 = z1 = x2 = y2 = z2 = 0.0;
         }
@@ -317,9 +307,11 @@ static gmx_bool get_w_conf(FILE*       in,
     return bVel;
 }
 
-void gmx_gro_read_conf(const char* infile, t_symtab* symtab, char** name, t_atoms* atoms, rvec x[], rvec* v, matrix box)
+void gmx_gro_read_conf(const char *infile,
+                       t_symtab *symtab, char **name, t_atoms *atoms,
+                       rvec x[], rvec *v, matrix box)
 {
-    FILE* in = gmx_fio_fopen(infile, "r");
+    FILE *in = gmx_fio_fopen(infile, "r");
     int   ndec;
     char  title[STRLEN];
     get_w_conf(in, infile, title, symtab, atoms, &ndec, x, v, box);
@@ -330,7 +322,7 @@ void gmx_gro_read_conf(const char* infile, t_symtab* symtab, char** name, t_atom
     gmx_fio_fclose(in);
 }
 
-static gmx_bool gmx_one_before_eof(FILE* fp)
+static gmx_bool gmx_one_before_eof(FILE *fp)
 {
     char     data[4];
     gmx_bool beof = fread(data, 1, 1, fp) != 1;
@@ -342,7 +334,7 @@ static gmx_bool gmx_one_before_eof(FILE* fp)
     return beof;
 }
 
-gmx_bool gro_next_x_or_v(FILE* status, t_trxframe* fr)
+gmx_bool gro_next_x_or_v(FILE *status, t_trxframe *fr)
 {
     t_atoms  atoms;
     t_symtab symtab;
@@ -370,8 +362,8 @@ gmx_bool gro_next_x_or_v(FILE* status, t_trxframe* fr)
     {
         fr->prec *= 10;
     }
-    fr->bX   = TRUE;
-    fr->bBox = TRUE;
+    fr->bX     = TRUE;
+    fr->bBox   = TRUE;
 
     sfree(atoms.atom);
     sfree(atoms.resinfo);
@@ -395,23 +387,20 @@ gmx_bool gro_next_x_or_v(FILE* status, t_trxframe* fr)
 
     if ((p = std::strstr(title, "step=")) != nullptr)
     {
-        p += 5;
+        p        += 5;
         fr->step  = 0; // Default value if fr-bStep is false
         fr->bStep = (sscanf(p, "%" SCNd64, &fr->step) == 1);
     }
 
     if (atoms.nr != fr->natoms)
     {
-        gmx_fatal(FARGS,
-                  "Number of atoms in gro frame (%d) doesn't match the number in the previous "
-                  "frame (%d)",
-                  atoms.nr, fr->natoms);
+        gmx_fatal(FARGS, "Number of atoms in gro frame (%d) doesn't match the number in the previous frame (%d)", atoms.nr, fr->natoms);
     }
 
     return TRUE;
 }
 
-int gro_first_x_or_v(FILE* status, t_trxframe* fr)
+int gro_first_x_or_v(FILE *status, t_trxframe *fr)
 {
     char title[STRLEN];
 
@@ -432,7 +421,7 @@ int gro_first_x_or_v(FILE* status, t_trxframe* fr)
     return fr->natoms;
 }
 
-static const char* get_hconf_format(bool haveVelocities)
+static const char *get_hconf_format(bool haveVelocities)
 {
     if (haveVelocities)
     {
@@ -442,38 +431,36 @@ static const char* get_hconf_format(bool haveVelocities)
     {
         return "%8.3f%8.3f%8.3f\n";
     }
+
 }
 
-static void write_hconf_box(FILE* out, const matrix box)
+static void write_hconf_box(FILE *out, const matrix box)
 {
-    if ((box[XX][YY] != 0.0F) || (box[XX][ZZ] != 0.0F) || (box[YY][XX] != 0.0F)
-        || (box[YY][ZZ] != 0.0F) || (box[ZZ][XX] != 0.0F) || (box[ZZ][YY] != 0.0F))
+    if ((box[XX][YY] != 0.0f) || (box[XX][ZZ] != 0.0f) || (box[YY][XX] != 0.0f) || (box[YY][ZZ] != 0.0f) ||
+        (box[ZZ][XX] != 0.0f) || (box[ZZ][YY] != 0.0f))
     {
-        fprintf(out, "%10.5f %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f %9.5f\n", box[XX][XX],
-                box[YY][YY], box[ZZ][ZZ], box[XX][YY], box[XX][ZZ], box[YY][XX], box[YY][ZZ],
-                box[ZZ][XX], box[ZZ][YY]);
+        fprintf(out, "%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f%10.5f\n",
+                box[XX][XX], box[YY][YY], box[ZZ][ZZ],
+                box[XX][YY], box[XX][ZZ], box[YY][XX],
+                box[YY][ZZ], box[ZZ][XX], box[ZZ][YY]);
     }
     else
     {
-        fprintf(out, "%10.5f %9.5f %9.5f\n", box[XX][XX], box[YY][YY], box[ZZ][ZZ]);
+        fprintf(out, "%10.5f%10.5f%10.5f\n",
+                box[XX][XX], box[YY][YY], box[ZZ][ZZ]);
     }
 }
 
-void write_hconf_indexed_p(FILE*          out,
-                           const char*    title,
-                           const t_atoms* atoms,
-                           int            nx,
-                           const int      index[],
-                           const rvec*    x,
-                           const rvec*    v,
-                           const matrix   box)
+void write_hconf_indexed_p(FILE *out, const char *title, const t_atoms *atoms,
+                           int nx, const int index[],
+                           const rvec *x, const rvec *v, const matrix box)
 {
-    int ai, i, resind, resnr;
+    int  ai, i, resind, resnr;
 
     fprintf(out, "%s\n", (title && title[0]) ? title : gmx::bromacs().c_str());
     fprintf(out, "%5d\n", nx);
 
-    const char* format = get_hconf_format(v != nullptr);
+    const char *format = get_hconf_format(v != nullptr);
 
     for (i = 0; (i < nx); i++)
     {
@@ -502,15 +489,17 @@ void write_hconf_indexed_p(FILE*          out,
             nm = " ??? ";
         }
 
-        fprintf(out, "%5d%-5.5s%5.5s%5d", resnr % 100000, resnm.c_str(), nm.c_str(), (ai + 1) % 100000);
+        fprintf(out, "%5d%-5.5s%5.5s%5d", resnr%100000, resnm.c_str(), nm.c_str(), (ai+1)%100000);
         /* next fprintf uses built format string */
         if (v)
         {
-            fprintf(out, format, x[ai][XX], x[ai][YY], x[ai][ZZ], v[ai][XX], v[ai][YY], v[ai][ZZ]);
+            fprintf(out, format,
+                    x[ai][XX], x[ai][YY], x[ai][ZZ], v[ai][XX], v[ai][YY], v[ai][ZZ]);
         }
         else
         {
-            fprintf(out, format, x[ai][XX], x[ai][YY], x[ai][ZZ]);
+            fprintf(out, format,
+                    x[ai][XX], x[ai][YY], x[ai][ZZ]);
         }
     }
 
@@ -519,29 +508,36 @@ void write_hconf_indexed_p(FILE*          out,
     fflush(out);
 }
 
-void write_hconf_mtop(FILE* out, const char* title, const gmx_mtop_t* mtop, const rvec* x, const rvec* v, const matrix box)
+void write_hconf_mtop(FILE *out, const char *title, gmx_mtop_t *mtop,
+                      const rvec *x, const rvec *v, const matrix box)
 {
+    int                     i, resnr;
+    gmx_mtop_atomloop_all_t aloop;
+    const t_atom           *atom;
+    char                   *atomname, *resname;
+
     fprintf(out, "%s\n", (title && title[0]) ? title : gmx::bromacs().c_str());
     fprintf(out, "%5d\n", mtop->natoms);
 
-    const char* format = get_hconf_format(v != nullptr);
+    const char *format = get_hconf_format(v != nullptr);
 
-    for (const AtomProxy atomP : AtomRange(*mtop))
+    aloop = gmx_mtop_atomloop_all_init(mtop);
+    while (gmx_mtop_atomloop_all_next(aloop, &i, &atom))
     {
-        int         i             = atomP.globalAtomNumber();
-        int         residueNumber = atomP.residueNumber();
-        const char* atomName      = atomP.atomName();
-        const char* residueName   = atomP.residueName();
+        gmx_mtop_atomloop_all_names(aloop, &atomname, &resnr, &resname);
 
-        fprintf(out, "%5d%-5.5s%5.5s%5d", residueNumber % 100000, residueName, atomName, (i + 1) % 100000);
+        fprintf(out, "%5d%-5.5s%5.5s%5d",
+                resnr%100000, resname, atomname, (i+1)%100000);
         /* next fprintf uses built format string */
         if (v)
         {
-            fprintf(out, format, x[i][XX], x[i][YY], x[i][ZZ], v[i][XX], v[i][YY], v[i][ZZ]);
+            fprintf(out, format,
+                    x[i][XX], x[i][YY], x[i][ZZ], v[i][XX], v[i][YY], v[i][ZZ]);
         }
         else
         {
-            fprintf(out, format, x[i][XX], x[i][YY], x[i][ZZ]);
+            fprintf(out, format,
+                    x[i][XX], x[i][YY], x[i][ZZ]);
         }
     }
 
@@ -550,10 +546,11 @@ void write_hconf_mtop(FILE* out, const char* title, const gmx_mtop_t* mtop, cons
     fflush(out);
 }
 
-void write_hconf_p(FILE* out, const char* title, const t_atoms* atoms, const rvec* x, const rvec* v, const matrix box)
+void write_hconf_p(FILE *out, const char *title, const t_atoms *atoms,
+                   const rvec *x, const rvec *v, const matrix box)
 {
-    int* aa;
-    int  i;
+    int     *aa;
+    int      i;
 
     snew(aa, atoms->nr);
     for (i = 0; (i < atoms->nr); i++)
@@ -564,14 +561,11 @@ void write_hconf_p(FILE* out, const char* title, const t_atoms* atoms, const rve
     sfree(aa);
 }
 
-void write_conf_p(const char*    outfile,
-                  const char*    title,
-                  const t_atoms* atoms,
-                  const rvec*    x,
-                  const rvec*    v,
-                  const matrix   box)
+void write_conf_p(const char *outfile, const char *title,
+                  const t_atoms *atoms,
+                  const rvec *x, const rvec *v, const matrix box)
 {
-    FILE* out;
+    FILE *out;
 
     out = gmx_fio_fopen(outfile, "w");
     write_hconf_p(out, title, atoms, x, v, box);

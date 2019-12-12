@@ -1,8 +1,8 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python2
 #
 # This file is part of the GROMACS molecular simulation package.
 #
-# Copyright (c) 2014,2015,2016,2017,2018,2019, by the GROMACS development team, led by
+# Copyright (c) 2014,2015,2016,2017,2018, by the GROMACS development team, led by
 # Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
 # and including many others, as listed in the AUTHORS file in the
 # top-level source directory and at http://www.gromacs.org.
@@ -93,9 +93,6 @@ class IncludedFile(object):
         else:
             return '"{0}"'.format(self._included_path)
 
-    def __lt__(self, other):
-        return str(self) < str(other)
-
     def is_system(self):
         return self._is_system
 
@@ -156,6 +153,7 @@ class File(object):
         self._relpath = relpath
         self._dir = directory
         self._rawdoc = None
+        self._installed = False
         extension = os.path.splitext(abspath)[1]
         self._sourcefile = (extension in ('.c', '.cc', '.cpp', '.cu'))
         self._apitype = DocType.none
@@ -181,6 +179,10 @@ class File(object):
                 module = sourcetree.get_object(group)
                 if module:
                     self._modules.add(module)
+
+    def set_installed(self):
+        """Mark the file installed."""
+        self._installed = True
 
     def set_git_filter_attribute(self, filtername):
         """Set the git filter attribute associated with the file."""
@@ -215,7 +217,7 @@ class File(object):
         include_re = r'^\s*#\s*include\s+(?P<quote>["<])(?P<path>[^">]*)[">]'
         define_re = r'^\s*#.*define(?:01)?\s+(\w*)'
         current_block = None
-        with open(self._abspath, 'r', encoding='utf8') as scanfile:
+        with open(self._abspath, 'r') as scanfile:
             contents = scanfile.read()
         lines = contents.splitlines(True)
         for lineno, line in enumerate(lines, 1):
@@ -252,6 +254,9 @@ class File(object):
     def get_reporter_location(self):
         return reporter.Location(self._abspath, None)
 
+    def is_installed(self):
+        return self._installed
+
     def is_external(self):
         return self._dir.is_external()
 
@@ -263,7 +268,7 @@ class File(object):
 
     def should_includes_be_sorted(self):
         """Return whether the include directives in the file should be sorted."""
-        return self._filter in ('includesort', 'complete_formatting')
+        return self._filter in ('includesort', 'uncrustify')
 
     def is_documented(self):
         return self._rawdoc and self._rawdoc.is_documented()
@@ -298,12 +303,14 @@ class File(object):
         return module and module.is_documented()
 
     def is_public(self):
-        return self.get_api_type() == DocType.public
+        if self.api_type_is_reliable():
+            return self.get_api_type() == DocType.public
+        return self.get_api_type() == DocType.public or self.is_installed()
 
     def is_module_internal(self):
         if self.is_source_file():
             return True
-        return self.get_api_type() <= DocType.internal
+        return not self.is_installed() and self.get_api_type() <= DocType.internal
 
     def get_expected_module(self):
         return self._dir.get_module()
@@ -354,7 +361,7 @@ class File(object):
 
         The return value is empty if find_define_file_uses() has not been called,
         as well as for headers that declare these defines."""
-        return set(self._used_defines.keys())
+        return set(self._used_defines.iterkeys())
 
     def get_used_defines(self, define_file):
         """Return set of defines used in this file for a given file like config.h.
@@ -412,6 +419,7 @@ class Directory(object):
         if parent:
             parent._subdirs.add(self)
         self._files = set()
+        self._has_installed_files = None
 
     def set_doc_xml(self, rawdoc, sourcetree):
         """Assiociate Doxygen documentation entity with the directory."""
@@ -443,6 +451,19 @@ class Directory(object):
 
     def is_external(self):
         return self._is_external
+
+    def has_installed_files(self):
+        if self._has_installed_files is None:
+            self._has_installed_files = False
+            for subdir in self._subdirs:
+                if subdir.has_installed_files():
+                    self._has_installed_files = True
+                    return True
+            for fileobj in self._files:
+                if fileobj.is_installed():
+                    self._has_installed_files = True
+                    return True
+        return self._has_installed_files
 
     def get_module(self):
         if self._module:
@@ -564,7 +585,7 @@ class Module(object):
         return self._group
 
     def get_dependencies(self):
-        return self._dependencies.values()
+        return self._dependencies.itervalues()
 
 class Namespace(object):
 
@@ -615,6 +636,9 @@ class Class(object):
 
     def get_file_doc_type(self):
         return max([fileobj.get_doc_type() for fileobj in self._files])
+
+    def is_in_installed_file(self):
+        return any([fileobj.is_installed() for fileobj in self._files])
 
 class Member(object):
 
@@ -667,6 +691,9 @@ class GromacsTree(object):
 
     load_git_attributes() can be called to load attribute information from
     .gitattributes for all the files.
+
+    load_installed_file_list() can be called to load the list of installed
+    files from the build tree (generated by CMake).
 
     scan_files() can be called to read all the files and initialize #include
     dependencies between the files based on the information.  This is done like
@@ -787,7 +814,7 @@ class GromacsTree(object):
         if only_files:
             filelist = only_files
         else:
-            filelist = self._files.values()
+            filelist = self._files.itervalues()
         define_files = list(self.get_checked_define_files())
         for define_file in list(define_files):
             if isinstance(define_file, GeneratedFile) and \
@@ -942,8 +969,8 @@ class GromacsTree(object):
         args = ['git', 'check-attr', '--stdin', 'filter']
         git_check_attr = subprocess.Popen(args, stdin=subprocess.PIPE,
                 stdout=subprocess.PIPE, cwd=self._source_root)
-        filelist = '\n'.join(map(File.get_relpath, self._files.values()))
-        filters = git_check_attr.communicate(filelist.encode())[0].decode()
+        filelist = '\n'.join(map(File.get_relpath, self._files.itervalues()))
+        filters = git_check_attr.communicate(filelist)[0]
         for fileinfo in filters.splitlines():
             path, dummy, value = fileinfo.split(': ')
             fileobj = self._files.get(path)
@@ -963,13 +990,31 @@ class GromacsTree(object):
                 args.extend(['-e', define])
             args.extend(['--', '*.cpp', '*.c', '*.cu', '*.h', '*.cuh'])
             define_re = r'\b(?:' + '|'.join(all_defines)+ r')\b'
-            output = subprocess.check_output(args, cwd=self._source_root).decode()
+            output = subprocess.check_output(args, cwd=self._source_root)
             for line in output.splitlines():
                 (filename, text) = line.split('\0')
                 fileobj = self._files.get(filename)
                 if fileobj is not None and fileobj not in excluded_files:
                     defines = re.findall(define_re, text)
                     fileobj.add_used_defines(define_file, defines)
+
+    def load_installed_file_list(self):
+        """Load list of installed files from the build tree."""
+        listpath = os.path.join(self._build_root, 'src', 'gromacs', 'installed-headers.txt')
+        with open(listpath, 'r') as installedfp:
+            for line in installedfp:
+                path = line.strip()
+                if not os.path.isabs(path):
+                    self._reporter.input_error(
+                            "installed file not specified with absolute path: {0}"
+                            .format(path))
+                    continue
+                relpath = self._get_rel_path(path)
+                if relpath not in self._files:
+                    self._reporter.input_error(
+                            "installed file not in source tree: {0}".format(path))
+                    continue
+                self._files[relpath].set_installed()
 
     def load_cycle_suppression_list(self, filename):
         """Load a list of edges to suppress in cycles.
@@ -1015,11 +1060,11 @@ class GromacsTree(object):
 
     def get_files(self):
         """Get iterable for all files in the source tree."""
-        return self._files.values()
+        return self._files.itervalues()
 
     def get_modules(self):
         """Get iterable for all modules in the source tree."""
-        return self._modules.values()
+        return self._modules.itervalues()
 
     def get_classes(self):
         """Get iterable for all classes in the source tree."""
@@ -1034,5 +1079,5 @@ class GromacsTree(object):
         be checked."""
         return (self._files['src/config.h'],
                 self._files['src/gromacs/simd/simd.h'],
-                self._files['src/gromacs/ewald/pme_simd.h'],
-                self._files['src/gromacs/nbnxm/nbnxm_simd.h'])
+                self._files['src/gromacs/ewald/pme-simd.h'],
+                self._files['src/gromacs/mdlib/nbnxn_simd.h'])

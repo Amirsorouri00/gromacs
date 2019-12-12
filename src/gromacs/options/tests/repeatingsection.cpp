@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2016,2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2016,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -67,7 +67,9 @@ TEST(RepeatingOptionSectionTest, HandlesNoInstance)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
     ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)));
 
@@ -83,9 +85,12 @@ TEST(RepeatingOptionSectionTest, HandlesNoInstanceWithRequiredOption)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
-    ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value).required()));
+    ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)
+                                          .required()));
 
     gmx::OptionsAssigner assigner(&options);
     EXPECT_NO_THROW_GMX(assigner.start());
@@ -99,7 +104,9 @@ TEST(RepeatingOptionSectionTest, HandlesSingleInstance)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
     ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)));
 
@@ -121,9 +128,12 @@ TEST(RepeatingOptionSectionTest, HandlesDefaultValue)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
-    ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value).defaultValue(3)));
+    ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)
+                                          .defaultValue(3)));
 
     gmx::OptionsAssigner assigner(&options);
     EXPECT_NO_THROW_GMX(assigner.start());
@@ -140,7 +150,9 @@ TEST(RepeatingOptionSectionTest, HandlesTwoInstances)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
     ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)));
 
@@ -168,7 +180,9 @@ TEST(RepeatingOptionSectionTest, HandlesUnsetOptionWithImplicitDefault)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
     ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)));
 
@@ -193,9 +207,12 @@ TEST(RepeatingOptionSectionTest, HandlesUnsetOptionWithExplicitDefault)
 {
     std::vector<SectionData> values;
     gmx::Options             options;
-    auto sec = options.addSection(RepeatingOptionSection<SectionData>("section").storeVector(&values));
+    auto                     sec = options.addSection(
+                RepeatingOptionSection<SectionData>("section")
+                    .storeVector(&values));
     using gmx::IntegerOption;
-    ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value).defaultValue(1)));
+    ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)
+                                          .defaultValue(1)));
 
     gmx::OptionsAssigner assigner(&options);
     EXPECT_NO_THROW_GMX(assigner.start());
@@ -216,7 +233,7 @@ TEST(RepeatingOptionSectionTest, HandlesUnsetOptionWithExplicitDefault)
 
 struct NestedSectionData
 {
-    int                      value{};
+    int                      value {};
     std::vector<SectionData> subsec;
 };
 
@@ -224,9 +241,12 @@ TEST(RepeatingOptionSectionTest, HandlesNestedSections)
 {
     std::vector<NestedSectionData> values;
     gmx::Options                   options;
-    auto sec = options.addSection(RepeatingOptionSection<NestedSectionData>("section").storeVector(&values));
-    auto subsec =
-            sec.addSection(RepeatingOptionSection<SectionData>("subsec").storeVector(&sec.bind().subsec));
+    auto                           sec = options.addSection(
+                RepeatingOptionSection<NestedSectionData>("section")
+                    .storeVector(&values));
+    auto                           subsec = sec.addSection(
+                RepeatingOptionSection<SectionData>("subsec")
+                    .storeVector(&sec.bind().subsec));
     using gmx::IntegerOption;
     ASSERT_NO_THROW_GMX(sec.addOption(IntegerOption("p").store(&sec.bind().value)));
     ASSERT_NO_THROW_GMX(subsec.addOption(IntegerOption("p").store(&subsec.bind().value)));

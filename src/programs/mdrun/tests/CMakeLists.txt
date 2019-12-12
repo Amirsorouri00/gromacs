@@ -1,7 +1,7 @@
 #
 # This file is part of the GROMACS molecular simulation package.
 #
-# Copyright (c) 2013,2014,2015,2016,2017,2018,2019, by the GROMACS development team, led by
+# Copyright (c) 2013,2014,2015,2016,2017,2018, by the GROMACS development team, led by
 # Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
 # and including many others, as listed in the AUTHORS file in the
 # top-level source directory and at http://www.gromacs.org.
@@ -32,13 +32,13 @@
 # To help us fund GROMACS development, we humbly ask that you cite
 # the research papers on the package. Check out http://www.gromacs.org.
 
-# Make a static library for test infrastructure code that we re-use
-# in multiple test executables across the repository.
-gmx_add_unit_test_library(mdrun_test_infrastructure
+# Make an "object library" for test infrastructure code that we re-use
+# in multiple test executables.
+add_library(mdrun_test_objlib OBJECT
     energyreader.cpp
     energycomparison.cpp
     moduletest.cpp
-    mdmodulenotification.cpp
+    simulationdatabase.cpp
     terminationhelper.cpp
     trajectorycomparison.cpp
     trajectoryreader.cpp
@@ -51,23 +51,20 @@ gmx_add_gtest_executable(
     ${exename}
     # files with code for tests
     compressed_x_output.cpp
-    densityfittingmodule.cpp
-    exactcontinuation.cpp
     grompp.cpp
-    helpwriting.cpp
     initialconstraints.cpp
     interactiveMD.cpp
     pmetest.cpp
-    simulator.cpp
     swapcoords.cpp
     tabulated_bonded_interactions.cpp
     termination.cpp
     trajectory_writing.cpp
     mimic.cpp
+    # pseudo-library for code for testing mdrun
+    $<TARGET_OBJECTS:mdrun_test_objlib>
     # pseudo-library for code for mdrun
     $<TARGET_OBJECTS:mdrun_objlib>
     )
-target_link_libraries(${exename} PRIVATE mdrun_test_infrastructure)
 gmx_register_gtest_test(${testname} ${exename} OPENMP_THREADS 2 INTEGRATION_TEST)
 
 # To avoid running into test timeouts, some end-to-end tests of mdrun
@@ -80,28 +77,29 @@ gmx_add_gtest_executable(
     ${exename}
     # files with code for tests
     minimize.cpp
-    nonbonded_bench.cpp
-    normalmodes.cpp
     rerun.cpp
-    simple_mdrun.cpp
+    # pseudo-library for code for testing mdrun
+    $<TARGET_OBJECTS:mdrun_test_objlib>
     # pseudo-library for code for mdrun
     $<TARGET_OBJECTS:mdrun_objlib>
     )
-target_link_libraries(${exename} PRIVATE mdrun_test_infrastructure)
 gmx_register_gtest_test(${testname} ${exename} OPENMP_THREADS 2 INTEGRATION_TEST)
 
-# TPI does not support OpenMP, so we need a separate test binary
-set(testname "MdrunTpiTests")
-set(exename "mdrun-tpi-test")
+# To permit other end-to-end tests to run with multiple OpenMP
+# threads, test cases that still use the group scheme are separated.
+set(testname "LegacyGroupSchemeMdrunTests")
+set(exename "legacy-mdrun-test")
 
 gmx_add_gtest_executable(
     ${exename}
-    # files with code for tests
+    # When TPI supports the Verlet scheme, move this into
+    # MdrunNonIntegratorTest
     tpitest.cpp
+    # pseudo-library for code for testing mdrun
+    $<TARGET_OBJECTS:mdrun_test_objlib>
     # pseudo-library for code for mdrun
     $<TARGET_OBJECTS:mdrun_objlib>
     )
-target_link_libraries(${exename} PRIVATE mdrun_test_infrastructure)
 gmx_register_gtest_test(${testname} ${exename} INTEGRATION_TEST)
 
 # Tests that only make sense to run with multiple ranks and/or real
@@ -119,29 +117,9 @@ gmx_add_gtest_executable(
     multisimtest.cpp
     pmetest.cpp
     replicaexchange.cpp
+    # pseudo-library for code for testing mdrun
+    $<TARGET_OBJECTS:mdrun_test_objlib>
     # pseudo-library for code for mdrun
     $<TARGET_OBJECTS:mdrun_objlib>
     )
-target_link_libraries(${exename} PRIVATE mdrun_test_infrastructure)
-gmx_register_gtest_test(${testname} ${exename} MPI_RANKS 2 OPENMP_THREADS 2 INTEGRATION_TEST)
-
-# Slow-running tests that target testing multiple-rank coordination behaviors
-set(exename "mdrun-mpi-coordination-test")
-gmx_add_gtest_executable(
-    ${exename} MPI
-    # files with code for tests
-    periodicactions.cpp
-    # pseudo-library for code for mdrun
-    $<TARGET_OBJECTS:mdrun_objlib>
-    )
-target_link_libraries(${exename} PRIVATE mdrun_test_infrastructure)
-
-# These tests are extremely slow without optimization or OpenMP, so only run them for
-# build types like Release or RelWithDebInfo and if the build has been configured
-# with OpenMP enabled.
-if (CMAKE_BUILD_TYPE MATCHES "Rel" AND GMX_OPENMP)
-    set(testname "MdrunMpiCoordinationTestsOneRank")
-    gmx_register_gtest_test(${testname} ${exename} MPI_RANKS 1 SLOW_TEST)
-    set(testname "MdrunMpiCoordinationTestsTwoRanks")
-    gmx_register_gtest_test(${testname} ${exename} MPI_RANKS 2 SLOW_TEST)
-endif()
+gmx_register_gtest_test(${testname} ${exename} OPENMP_THREADS 2 INTEGRATION_TEST)

@@ -361,7 +361,8 @@ linkchecker:
   when: manual
   needs:
     - job: webpage
-      artifacts: true
+      artifacts: t
+rue
   variables:
       BUILD_DIR: build-docs
   script:
@@ -370,4 +371,3 @@ linkchecker:
   artifacts:
     reports:
       junit: $BUILD_DIR/linkchecker-out.xml
-

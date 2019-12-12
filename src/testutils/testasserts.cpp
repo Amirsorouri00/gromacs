@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2014,2015,2016,2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2014,2015,2016,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -74,18 +74,18 @@ bool g_showExpectedExceptions = false;
 GMX_TEST_OPTIONS(ExceptionOptions, options)
 {
     options->addOption(BooleanOption("show-error-messages")
-                               .store(&g_showExpectedExceptions)
-                               .description("Show error messages from expected "
-                                            "exceptions"));
+                           .store(&g_showExpectedExceptions)
+                           .description("Show error messages from expected "
+                                        "exceptions"));
 }
 //! \endcond
-} // namespace
+}       // namespace
 
 namespace internal
 {
 
 //! \cond internal
-void processExpectedException(const std::exception& ex)
+void processExpectedException(const std::exception &ex)
 {
     if (g_showExpectedExceptions)
     {
@@ -95,7 +95,7 @@ void processExpectedException(const std::exception& ex)
 }
 //! \endcond
 
-} // namespace internal
+}       // namespace internal
 
 namespace
 {
@@ -122,8 +122,9 @@ using ::testing::internal::FloatingPoint;
  * zero, and the order of the integer values matches the order of the
  * floating-point values.
  */
-template<typename FloatType>
-typename FloatingPoint<FloatType>::Bits floatingPointToBiasedInteger(const FloatingPoint<FloatType>& value)
+template <typename FloatType>
+typename FloatingPoint<FloatType>::Bits
+floatingPointToBiasedInteger(const FloatingPoint<FloatType> &value)
 {
     if (value.sign_bit())
     {
@@ -139,19 +140,23 @@ typename FloatingPoint<FloatType>::Bits floatingPointToBiasedInteger(const Float
  * Computes the magnitude of the difference in ULPs between two numbers,
  * treating also values of different sign.
  */
-template<typename FloatType>
-uint64_t calculateUlpDifference(const FloatingPoint<FloatType>& value1, const FloatingPoint<FloatType>& value2)
+template <typename FloatType>
+uint64_t calculateUlpDifference(const FloatingPoint<FloatType> &value1,
+                                const FloatingPoint<FloatType> &value2)
 {
-    typename FloatingPoint<FloatType>::Bits biased1 = floatingPointToBiasedInteger(value1);
-    typename FloatingPoint<FloatType>::Bits biased2 = floatingPointToBiasedInteger(value2);
+    typename FloatingPoint<FloatType>::Bits biased1
+        = floatingPointToBiasedInteger(value1);
+    typename FloatingPoint<FloatType>::Bits biased2
+        = floatingPointToBiasedInteger(value2);
     return biased1 > biased2 ? biased1 - biased2 : biased2 - biased1;
 }
 
 /*! \brief
  * Helper to implement the constructors for FloatingPointDifference.
  */
-template<typename FloatType>
-void initDifference(FloatType raw1, FloatType raw2, double* absoluteDifference, uint64_t* ulpDifference, bool* bSignDifference)
+template <typename FloatType>
+void initDifference(FloatType raw1, FloatType raw2, double *absoluteDifference,
+                    uint64_t *ulpDifference, bool *bSignDifference)
 {
     FloatingPoint<FloatType> value1(raw1);
     FloatingPoint<FloatType> value2(raw2);
@@ -171,7 +176,7 @@ void initDifference(FloatType raw1, FloatType raw2, double* absoluteDifference, 
 /*! \brief
  * Converts a relative tolerance into an ULP difference.
  */
-template<typename FloatType>
+template <typename FloatType>
 uint64_t relativeToleranceToUlp(FloatType tolerance)
 {
     FloatingPoint<FloatType> m(1.0);
@@ -182,23 +187,25 @@ uint64_t relativeToleranceToUlp(FloatType tolerance)
 //! \}
 //! \}
 
-} // namespace
+}       // namespace
 
 /********************************************************************
  * FloatingPointDifference
  */
 
-FloatingPointDifference::FloatingPointDifference(float ref, float value) :
-    termMagnitude_(std::abs(ref))
+FloatingPointDifference::FloatingPointDifference(float ref, float value)
+    : termMagnitude_(std::abs(ref))
 {
-    initDifference(ref, value, &absoluteDifference_, &ulpDifference_, &bSignDifference_);
+    initDifference(ref, value,
+                   &absoluteDifference_, &ulpDifference_, &bSignDifference_);
     bDouble_ = false;
 }
 
-FloatingPointDifference::FloatingPointDifference(double ref, double value) :
-    termMagnitude_(std::abs(ref))
+FloatingPointDifference::FloatingPointDifference(double ref, double value)
+    : termMagnitude_(std::abs(ref))
 {
-    initDifference(ref, value, &absoluteDifference_, &ulpDifference_, &bSignDifference_);
+    initDifference(ref, value,
+                   &absoluteDifference_, &ulpDifference_, &bSignDifference_);
     bDouble_ = true;
 }
 
@@ -214,7 +221,7 @@ std::string FloatingPointDifference::toString() const
     if (termMagnitude_ > 0)
     {
         // If the reference value is finite we calculate the proper quotient
-        relDiffStr = formatString("%.3g", std::abs(absoluteDifference_ / termMagnitude_));
+        relDiffStr = formatString("%.3g", std::abs(absoluteDifference_/termMagnitude_));
     }
     else if (absoluteDifference_ == 0.0)
     {
@@ -228,8 +235,10 @@ std::string FloatingPointDifference::toString() const
         relDiffStr = formatString("Inf");
     }
 
-    return formatString("%g (%" PRIu64 " %s-prec. ULPs, rel. %s)%s", absoluteDifference_,
-                        ulpDifference_, isDouble() ? "double" : "single", relDiffStr.c_str(),
+    return formatString("%g (%" PRIu64 " %s-prec. ULPs, rel. %s)%s",
+                        absoluteDifference_, ulpDifference_,
+                        isDouble() ? "double" : "single",
+                        relDiffStr.c_str(),
                         bSignDifference_ ? ", signs differ" : "");
 }
 
@@ -237,7 +246,8 @@ std::string FloatingPointDifference::toString() const
  * FloatingPointTolerance
  */
 
-bool FloatingPointTolerance::isWithin(const FloatingPointDifference& difference) const
+bool FloatingPointTolerance::isWithin(
+        const FloatingPointDifference &difference) const
 {
     if (difference.isNaN())
     {
@@ -249,8 +259,8 @@ bool FloatingPointTolerance::isWithin(const FloatingPointDifference& difference)
         return false;
     }
 
-    const double absoluteTolerance =
-            difference.isDouble() ? doubleAbsoluteTolerance_ : singleAbsoluteTolerance_;
+    const double absoluteTolerance
+        = difference.isDouble() ? doubleAbsoluteTolerance_ : singleAbsoluteTolerance_;
     if (difference.asAbsolute() < absoluteTolerance)
     {
         return true;
@@ -259,26 +269,28 @@ bool FloatingPointTolerance::isWithin(const FloatingPointDifference& difference)
     // By using smaller-than-or-equal below, we allow the test to pass if
     // the numbers are identical, even if the term magnitude is 0, which seems
     // a reasonable thing to do...
-    const double relativeTolerance =
-            difference.isDouble() ? doubleRelativeTolerance_ : singleRelativeTolerance_;
+    const double relativeTolerance
+        = difference.isDouble() ? doubleRelativeTolerance_ : singleRelativeTolerance_;
 
     if (difference.asAbsolute() <= relativeTolerance * difference.termMagnitude())
     {
         return true;
     }
 
-    const uint64_t ulpTolerance = difference.isDouble() ? doubleUlpTolerance_ : singleUlpTolerance_;
+    const uint64_t ulpTolerance
+        = difference.isDouble() ? doubleUlpTolerance_ : singleUlpTolerance_;
     return ulpTolerance < UINT64_MAX && difference.asUlps() <= ulpTolerance;
 }
 
-std::string FloatingPointTolerance::toString(const FloatingPointDifference& difference) const
+std::string FloatingPointTolerance::toString(const FloatingPointDifference &difference) const
 {
-    std::string  result;
-    const double absoluteTolerance =
-            difference.isDouble() ? doubleAbsoluteTolerance_ : singleAbsoluteTolerance_;
-    const double relativeTolerance =
-            difference.isDouble() ? doubleRelativeTolerance_ : singleRelativeTolerance_;
-    const uint64_t ulpTolerance = difference.isDouble() ? doubleUlpTolerance_ : singleUlpTolerance_;
+    std::string        result;
+    const double       absoluteTolerance
+        = difference.isDouble() ? doubleAbsoluteTolerance_ : singleAbsoluteTolerance_;
+    const double       relativeTolerance
+        = difference.isDouble() ? doubleRelativeTolerance_ : singleRelativeTolerance_;
+    const uint64_t     ulpTolerance
+        = difference.isDouble() ? doubleUlpTolerance_ : singleUlpTolerance_;
 
     if (absoluteTolerance > 0.0)
     {
@@ -313,20 +325,14 @@ std::string FloatingPointTolerance::toString(const FloatingPointDifference& diff
 
 // Doxygen does not recognize this as the same function as in the header...
 //! \cond
-FloatingPointTolerance relativeToleranceAsFloatingPoint(double magnitude, double tolerance)
+FloatingPointTolerance
+relativeToleranceAsFloatingPoint(double magnitude, double tolerance)
 {
-    return relativeToleranceAsPrecisionDependentFloatingPoint(magnitude, float(tolerance), tolerance);
-}
-
-FloatingPointTolerance relativeToleranceAsPrecisionDependentFloatingPoint(double magnitude,
-                                                                          float  singleTolerance,
-                                                                          double doubleTolerance)
-{
-    const float  absoluteSingleTolerance = std::abs(float(magnitude)) * singleTolerance;
-    const double absoluteDoubleTolerance = std::abs(magnitude) * doubleTolerance;
-    return {
-        absoluteSingleTolerance, absoluteDoubleTolerance, singleTolerance, doubleTolerance, UINT64_MAX, UINT64_MAX, false
-    };
+    const double absoluteTolerance = std::abs(magnitude) * tolerance;
+    return FloatingPointTolerance(absoluteTolerance, absoluteTolerance,
+                                  tolerance, tolerance,
+                                  UINT64_MAX, UINT64_MAX,
+                                  false);
 }
 //! \endcond
 

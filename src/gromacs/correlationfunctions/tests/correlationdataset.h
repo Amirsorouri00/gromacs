@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2014,2019, by the GROMACS development team, led by
+ * Copyright (c) 2014, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -50,61 +50,62 @@
 
 class CorrelationDataSet
 {
-    double** tempValues_;
+    double         ** tempValues_;
 
-    int    nrLines_;
-    int    nrColumns_;
-    double startTime_;
-    double endTime_;
-    double dt_;
+    int               nrLines_;
+    int               nrColumns_;
+    double            startTime_;
+    double            endTime_;
+    double            dt_;
 
-public:
-    /*! \brief
-     * Constructor
-     * \param[in] fileName containing function to test. *.xvg
-     */
-    explicit CorrelationDataSet(const std::string& fileName);
+    public:
 
-    /*! \brief
-     * Return a value at an index
-     * \param[in] set the set number
-     * \param[in] t the time index of the value
-     */
-    real getValue(int set, int t) const;
+        /*! \brief
+         * Constructor
+         * \param[in] fileName containing function to test. *.xvg
+         */
+        explicit CorrelationDataSet(const std::string &fileName);
 
-    /*! \brief
-     * Return the nummber of columns
-     */
-    int getNrColumns() const { return nrColumns_; }
+        /*! \brief
+         * Return a value at an index
+         * \param[in] set the set number
+         * \param[in] t the time index of the value
+         */
+        real getValue(int set, int t) const;
 
-    /*! \brief
-     * Return the nummber of Lines
-     */
-    int getNrLines() const { return nrLines_; }
+        /*! \brief
+         * Return the nummber of columns
+         */
+        int getNrColumns() const { return nrColumns_; }
 
-    /*! \brief
-     * Return the time witch the function starts at
-     */
-    real getStartTime() const { return startTime_; }
+        /*! \brief
+         * Return the nummber of Lines
+         */
+        int getNrLines() const { return nrLines_; }
 
-    /*! \brief
-     * Return the time the function ends at
-     */
-    real getEndTime() const { return endTime_; }
+        /*! \brief
+         * Return the time witch the function starts at
+         */
+        real getStartTime() const { return startTime_; }
 
-    /*! \brief
-     * return delta time
-     */
-    real getDt() const { return dt_; }
+        /*! \brief
+         * Return the time the function ends at
+         */
+        real getEndTime() const { return endTime_; }
 
-    /*! \brief
-     * Destructor
-     */
-    ~CorrelationDataSet();
+        /*! \brief
+         * return delta time
+         */
+        real getDt() const { return dt_; }
 
-private:
-    //! This class should not be copyable or assignable
-    GMX_DISALLOW_COPY_AND_ASSIGN(CorrelationDataSet);
+        /*! \brief
+         * Destructor
+         */
+        ~CorrelationDataSet();
+
+    private:
+        //! This class should not be copyable or assignable
+        GMX_DISALLOW_COPY_AND_ASSIGN(CorrelationDataSet);
 };
 
 #endif

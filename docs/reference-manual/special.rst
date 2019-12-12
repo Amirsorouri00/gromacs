@@ -23,6 +23,5 @@ the use of |Gromacs| for specific scientific problems.
    special/mimic-qmmm
    special/vmd-imd
    special/membrane-embedding
-   special/density-guided-simulation.rst
 
 

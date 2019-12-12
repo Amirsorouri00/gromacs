@@ -1,8 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2011-2018, The GROMACS development team.
- * Copyright (c) 2019, by the GROMACS development team, led by
+ * Copyright (c) 2011,2012,2013,2014,2015,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -45,8 +44,7 @@
 #define GMX_UTILITY_GMXASSERT_H
 
 #include "gromacs/utility/basedefinitions.h"
-
-#include "current_function.h"
+#include "gromacs/utility/current_function.h"
 
 //! \addtogroup module_utility
 //! \{
@@ -63,22 +61,22 @@
  * keep the option open.
  */
 #ifdef GMX_DISABLE_ASSERTS
-#    define GMX_RELEASE_ASSERT(condition, msg)
+#define GMX_RELEASE_ASSERT(condition, msg)
 #else
-#    ifdef _MSC_VER
-#        define GMX_RELEASE_ASSERT(condition, msg)                                                      \
-            ((void)((condition) ? (void)0                                                               \
-                                : ::gmx::internal::assertHandler(#condition, msg, GMX_CURRENT_FUNCTION, \
-                                                                 __FILE__, __LINE__)))
-#    else
+#ifdef _MSC_VER
+#define GMX_RELEASE_ASSERT(condition, msg) \
+    ((void) ((condition) ? (void)0 :                               \
+             ::gmx::internal::assertHandler(#condition, msg, \
+                                            GMX_CURRENT_FUNCTION, __FILE__, __LINE__)))
+#else
 // Use an "immediately invoked function expression" to allow being
 // used in constexpr context with older GCC versions
 // https://akrzemi1.wordpress.com/2017/05/18/asserts-in-constexpr-functions/
-#        define GMX_RELEASE_ASSERT(condition, msg)                                                         \
-            ((void)((condition) ? (void)0 : [&]() {                                                        \
-                ::gmx::internal::assertHandler(#condition, msg, GMX_CURRENT_FUNCTION, __FILE__, __LINE__); \
-            }()))
-#    endif
+#define GMX_RELEASE_ASSERT(condition, msg) \
+    ((void) ((condition) ? (void)0 :                               \
+             [&](){::gmx::internal::assertHandler(#condition, msg, \
+                                                  GMX_CURRENT_FUNCTION, __FILE__, __LINE__); } ()))
+#endif
 #endif
 /*! \def GMX_ASSERT
  * \brief
@@ -90,9 +88,9 @@
  * \see ::GMX_RELEASE_ASSERT
  */
 #ifdef NDEBUG
-#    define GMX_ASSERT(condition, msg) ((void)0)
+#define GMX_ASSERT(condition, msg) ((void)0)
 #else
-#    define GMX_ASSERT(condition, msg) GMX_RELEASE_ASSERT(condition, msg)
+#define GMX_ASSERT(condition, msg) GMX_RELEASE_ASSERT(condition, msg)
 #endif
 
 //! \}
@@ -112,10 +110,11 @@ namespace internal
  *
  * \ingroup module_utility
  */
-[[noreturn]] void
-assertHandler(const char* condition, const char* msg, const char* func, const char* file, int line);
+[[noreturn]]
+void assertHandler(const char *condition, const char *msg,
+                   const char *func, const char *file, int line);
 
-} // namespace internal
+}   // namespace internal
 //! \endcond
 
 } // namespace gmx

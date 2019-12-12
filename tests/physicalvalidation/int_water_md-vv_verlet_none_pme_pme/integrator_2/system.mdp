@@ -1,0 +1,10 @@
+nsteps                   = 4000
+dt                       = 0.000125
+nstcalcenergy            = 4
+nstenergy                = 4
+cutoff-scheme            = verlet
+verlet-buffer-tolerance  = 1e-10
+integrator               = md-vv
+vdwtype                  = pme
+coulombtype              = pme
+fourierspacing           = 0.05

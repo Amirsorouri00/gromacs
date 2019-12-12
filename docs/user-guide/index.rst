@@ -31,6 +31,7 @@ For background on algorithms and implementations, see the
    managing-simulations
    faq
    force-fields
+   cutoff-schemes
    cmdline
    mdp-options
    mdrun-features

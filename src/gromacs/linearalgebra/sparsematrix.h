@@ -3,7 +3,7 @@
  *
  * Copyright (c) 1991-2000, University of Groningen, The Netherlands.
  * Copyright (c) 2001-2004, The GROMACS development team.
- * Copyright (c) 2012,2014,2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2012,2014,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -42,10 +42,11 @@
 #include "gromacs/utility/basedefinitions.h"
 #include "gromacs/utility/real.h"
 
-typedef struct gmx_sparsematrix_entry
+typedef struct
+    gmx_sparsematrix_entry
 {
-    int  col;
-    real value;
+    int      col;
+    real     value;
 } gmx_sparsematrix_entry_t;
 
 /*! \brief Sparse matrix storage format
@@ -98,14 +99,16 @@ typedef struct gmx_sparsematrix_entry
  *
  *  In other words: Not perfect, but it works.
  */
-typedef struct gmx_sparsematrix
+typedef struct
+    gmx_sparsematrix
 {
-    gmx_bool compressed_symmetric;   /**< Store half elements and assume symmetry. */
-    int      nrow;                   /**< Number of rows in matrix                 */
-    int*     ndata;                  /**< Number of entries on each row (list)     */
-    int*     nalloc;                 /**< Allocated entry list length for each row */
-    gmx_sparsematrix_entry_t** data; /**< data[i] is a list with entries on row i  */
-} gmx_sparsematrix_t;
+    gmx_bool                     compressed_symmetric; /**< Store half elements and assume symmetry. */
+    int                          nrow;                 /**< Number of rows in matrix                 */
+    int *                        ndata;                /**< Number of entries on each row (list)     */
+    int *                        nalloc;               /**< Allocated entry list length for each row */
+    gmx_sparsematrix_entry_t **  data;                 /**< data[i] is a list with entries on row i  */
+}
+gmx_sparsematrix_t;
 
 
 /*! \brief Allocate a new sparse matrix structure
@@ -118,14 +121,16 @@ typedef struct gmx_sparsematrix
  *  be FALSE. Set it to TRUE manually if you are only storing either the
  *  upper or lower half of the matrix.
  */
-gmx_sparsematrix_t* gmx_sparsematrix_init(int nrow);
+gmx_sparsematrix_t *
+gmx_sparsematrix_init            (int                    nrow);
 
 
 /*! \brief Release all resources used by a sparse matrix structure
  *
  *  All arrays in the structure will be freed, and the structure itself.
  */
-void gmx_sparsematrix_destroy(gmx_sparsematrix_t* A);
+void
+gmx_sparsematrix_destroy         (gmx_sparsematrix_t *   A);
 
 
 /*! \brief Print sparse matrix to a stream.
@@ -133,7 +138,9 @@ void gmx_sparsematrix_destroy(gmx_sparsematrix_t* A);
  *  Mainly used for debugging. Be warned that the real sparse matrices used
  *  in Gromacs runs can be HUGE (think 100,000 rows).
  */
-void gmx_sparsematrix_print(FILE* stream, gmx_sparsematrix_t* A);
+void
+gmx_sparsematrix_print           (FILE *                 stream,
+                                  gmx_sparsematrix_t *   A);
 
 /* Adds value at row,col. If the value did not exist
  * previously it is added, otherwise it is incremented with difference.
@@ -141,7 +148,10 @@ void gmx_sparsematrix_print(FILE* stream, gmx_sparsematrix_t* A);
  * The column sort order might change, so you need to run fix_sparsematrix
  * once you are done changing the matrix.
  */
-real gmx_sparsematrix_value(gmx_sparsematrix_t* A, int row, int col);
+real
+gmx_sparsematrix_value          (gmx_sparsematrix_t *    A,
+                                 int                     row,
+                                 int                     col);
 
 
 /* Adds value at row,col. If the value did not exist
@@ -150,7 +160,12 @@ real gmx_sparsematrix_value(gmx_sparsematrix_t* A, int row, int col);
  * The column sort order might change, so you need to run fix_sparsematrix
  * once you are done changing the matrix.
  */
-void gmx_sparsematrix_increment_value(gmx_sparsematrix_t* A, int row, int col, real difference);
+void
+gmx_sparsematrix_increment_value(gmx_sparsematrix_t *    A,
+                                 int                     row,
+                                 int                     col,
+                                 real                    difference);
+
 
 
 /*! \brief Sort elements in each column and remove zeros.
@@ -162,14 +177,19 @@ void gmx_sparsematrix_increment_value(gmx_sparsematrix_t* A, int row, int col, r
  *
  *  It never hurts to run this routine if you have been updating the matrix...
  */
-void gmx_sparsematrix_compress(gmx_sparsematrix_t* A);
+void
+gmx_sparsematrix_compress       (gmx_sparsematrix_t *    A);
+
 
 
 /*! \brief Sparse matrix vector multiplication
  *
  * Calculate y = A * x for a sparse matrix A.
  */
-void gmx_sparsematrix_vector_multiply(gmx_sparsematrix_t* A, real* x, real* y);
+void
+gmx_sparsematrix_vector_multiply(gmx_sparsematrix_t *    A,
+                                 real *                  x,
+                                 real *                  y);
 
 
 #endif

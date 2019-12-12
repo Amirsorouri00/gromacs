@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -69,7 +69,8 @@ namespace test
  *
  *   EXPECT_THAT(testFloats, Pointwise(FloatEq(tolerance), referenceFloats));
  */
-testing::Matcher<std::tuple<float, float>> FloatEq(const FloatingPointTolerance& tolerance);
+testing::Matcher < std::tuple < float, float>>
+FloatEq(const FloatingPointTolerance &tolerance);
 
 /*! \brief Make matcher for doubles for use with GoogleMock that compare
  * equal when \c tolerance is satisifed.
@@ -78,7 +79,8 @@ testing::Matcher<std::tuple<float, float>> FloatEq(const FloatingPointTolerance&
  *
  *   EXPECT_THAT(testDoubles, Pointwise(DoubleEq(tolerance), referenceDoubles));
  */
-testing::Matcher<std::tuple<double, double>> DoubleEq(const FloatingPointTolerance& tolerance);
+testing::Matcher < std::tuple < double, double>>
+DoubleEq(const FloatingPointTolerance &tolerance);
 
 /*! \brief Make matcher for reals for use with GoogleMock that compare
  * equal when \c tolerance is satisifed.
@@ -87,7 +89,8 @@ testing::Matcher<std::tuple<double, double>> DoubleEq(const FloatingPointToleran
  *
  *   EXPECT_THAT(testReals, Pointwise(RealEq(tolerance), referenceReals));
  */
-testing::Matcher<std::tuple<real, real>> RealEq(const FloatingPointTolerance& tolerance);
+testing::Matcher < std::tuple < real, real>>
+RealEq(const FloatingPointTolerance &tolerance);
 
 /*! \brief Make matcher for RVecs for use with GoogleMock that compare
  * equal when \c tolerance is satisifed.
@@ -96,9 +99,10 @@ testing::Matcher<std::tuple<real, real>> RealEq(const FloatingPointTolerance& to
  *
  *   EXPECT_THAT(testRVecs, Pointwise(RVecEq(tolerance), referenceRVecs));
  */
-testing::Matcher<std::tuple<RVec, RVec>> RVecEq(const FloatingPointTolerance& tolerance);
+testing::Matcher < std::tuple < RVec, RVec>>
+RVecEq(const FloatingPointTolerance &tolerance);
 
-} // namespace test
-} // namespace gmx
+}  // namespace test
+}  // namespace gmx
 
 #endif

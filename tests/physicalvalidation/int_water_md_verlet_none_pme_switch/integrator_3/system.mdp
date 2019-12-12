@@ -1,0 +1,12 @@
+nsteps                   = 8000
+dt                       = 6.25e-05
+nstcalcenergy            = 8
+nstenergy                = 8
+cutoff-scheme            = verlet
+verlet-buffer-tolerance  = 1e-10
+integrator               = md
+vdwtype                  = cut-off
+vdw-modifier             = force-switch
+rvdw-switch              = 0.8
+coulombtype              = pme
+fourierspacing           = 0.05

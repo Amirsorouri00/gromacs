@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2012,2013,2014,2015,2019, by the GROMACS development team, led by
+ * Copyright (c) 2012,2013,2014,2015, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -61,7 +61,7 @@ namespace
 {
 //! Stores the -stdout flag value to print out values instead of checking them.
 bool g_bWriteToStdOut = false;
-} // namespace
+}
 
 // TODO: Only add this option to those test binaries that actually need it
 // (depending on the linker, it may or may not appear right now),
@@ -70,7 +70,9 @@ bool g_bWriteToStdOut = false;
 GMX_TEST_OPTIONS(StringTestOptions, options)
 {
     options->addOption(
-            BooleanOption("stdout").store(&g_bWriteToStdOut).description("Print the test string to stdout instead of checking against reference data"));
+            BooleanOption("stdout")
+                .store(&g_bWriteToStdOut)
+                .description("Print the test string to stdout instead of checking against reference data"));
 }
 //! \endcond
 
@@ -80,9 +82,9 @@ GMX_TEST_OPTIONS(StringTestOptions, options)
 
 class StringTestBase::Impl
 {
-public:
-    TestReferenceData    data_;
-    TestReferenceChecker checker_;
+    public:
+        TestReferenceData        data_;
+        TestReferenceChecker     checker_;
 };
 
 /********************************************************************
@@ -90,7 +92,8 @@ public:
  */
 
 // static
-void StringTestBase::checkText(TestReferenceChecker* checker, const std::string& text, const char* id)
+void StringTestBase::checkText(TestReferenceChecker *checker,
+                               const std::string &text, const char *id)
 {
     if (g_bWriteToStdOut)
     {
@@ -103,11 +106,17 @@ void StringTestBase::checkText(TestReferenceChecker* checker, const std::string&
     }
 }
 
-StringTestBase::StringTestBase() : impl_(new Impl) {}
+StringTestBase::StringTestBase()
+    : impl_(new Impl)
+{
+}
 
-StringTestBase::~StringTestBase() {}
+StringTestBase::~StringTestBase()
+{
+}
 
-TestReferenceChecker& StringTestBase::checker()
+TestReferenceChecker &
+StringTestBase::checker()
 {
     if (!impl_->checker_)
     {
@@ -116,18 +125,22 @@ TestReferenceChecker& StringTestBase::checker()
     return impl_->checker_;
 }
 
-void StringTestBase::checkText(const std::string& text, const char* id)
+void
+StringTestBase::checkText(const std::string &text, const char *id)
 {
     checkText(&checker(), text, id);
 }
 
-void StringTestBase::checkFileContents(const std::string& filename, const char* id)
+void
+StringTestBase::checkFileContents(const std::string &filename, const char *id)
 {
     const std::string text = TextReader::readFileToString(filename);
     checkText(text, id);
 }
 
-void StringTestBase::testFilesEqual(const std::string& refFilename, const std::string& testFilename)
+void
+StringTestBase::testFilesEqual(const std::string &refFilename,
+                               const std::string &testFilename)
 {
     const std::string expectedContents = TextReader::readFileToString(refFilename);
     const std::string contents         = TextReader::readFileToString(testFilename);

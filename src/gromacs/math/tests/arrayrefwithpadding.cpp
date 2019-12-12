@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -59,7 +59,8 @@ namespace
 
 TEST(EmptyArrayRefWithPaddingTest, IsEmpty)
 {
-    ArrayRefWithPadding<real> empty;
+    EmptyArrayRef             emptyArray = {};
+    ArrayRefWithPadding<real> empty(emptyArray);
 
     EXPECT_EQ(0U, empty.size());
     EXPECT_TRUE(empty.empty());
@@ -67,7 +68,8 @@ TEST(EmptyArrayRefWithPaddingTest, IsEmpty)
 
 TEST(EmptyConstArrayRefWithPaddingTest, IsEmpty)
 {
-    ArrayRefWithPadding<const real> empty;
+    EmptyArrayRef                   emptyArray = {};
+    ArrayRefWithPadding<const real> empty(emptyArray);
 
     EXPECT_EQ(0U, empty.size());
     EXPECT_TRUE(empty.empty());
@@ -76,7 +78,11 @@ TEST(EmptyConstArrayRefWithPaddingTest, IsEmpty)
 #ifdef GTEST_HAS_TYPED_TEST
 
 //! Define the types that end up being available as TypeParam in the test cases for both kinds of ArrayRefWithPadding
-typedef ::testing::Types<ArrayRefWithPadding<int32_t>, ArrayRefWithPadding<float>, ArrayRefWithPadding<double>> ArrayRefTypes;
+typedef ::testing::Types<
+        ArrayRefWithPadding<int32_t>,
+        ArrayRefWithPadding<float>,
+        ArrayRefWithPadding<double>
+        > ArrayRefTypes;
 
 //! Helper constant used in the text fixture.
 constexpr index aSize = 3;
@@ -85,78 +91,41 @@ constexpr index aSize = 3;
  *
  * The main objective is to verify that all the different kinds of
  * construction lead to the expected result. */
-template<typename TypeParam>
+template <typename TypeParam>
 class ArrayRefWithPaddingTest : public ::testing::Test
 {
-public:
-    typedef TypeParam                         ArrayRefType;
-    typedef typename ArrayRefType::value_type ValueType;
-    typedef PaddedVector<ValueType>           PaddedVectorType;
+    public:
+        typedef TypeParam ArrayRefType;
+        typedef typename ArrayRefType::value_type ValueType;
+        typedef PaddedVector<ValueType> PaddedVectorType;
 
-    ValueType        a[aSize] = { ValueType(1.2), ValueType(2.4), ValueType(3.1) };
-    PaddedVectorType v;
+        ValueType        a[aSize] = { ValueType(1.2), ValueType(2.4), ValueType(3.1) };
+        PaddedVectorType v;
 
-    //! Constructor, which prepares a padded vector to take array ref of.
-    ArrayRefWithPaddingTest() : v(aSize) { std::copy(a, a + aSize, v.begin()); }
-
-    /*! \brief Run the same tests all the time
-     *
-     * Note that test cases must call this->runTests(), because
-     * that's how the derived-class templates that implement
-     * type-parameterized tests actually work. */
-    void runTests(ArrayRefType& arrayRefWithPadding)
-    {
-        ASSERT_LE(aSize, arrayRefWithPadding.size());
-        ASSERT_FALSE(arrayRefWithPadding.empty());
-        auto unpaddedArrayRef = arrayRefWithPadding.unpaddedArrayRef();
-        auto paddedArrayRef   = arrayRefWithPadding.paddedArrayRef();
-        EXPECT_LE(unpaddedArrayRef.size(), paddedArrayRef.size());
-        for (index i = 0; i != aSize; ++i)
+        //! Constructor, which prepares a padded vector to take array ref of.
+        ArrayRefWithPaddingTest() : v(aSize)
         {
-            EXPECT_EQ(paddedArrayRef[i], unpaddedArrayRef[i]);
-            EXPECT_EQ(a[i], unpaddedArrayRef[i]);
+            std::copy(a, a + aSize, v.begin());
         }
 
-        using ConstArrayRefWithPaddingType = ArrayRefWithPadding<const typename ArrayRefType::value_type>;
+        /*! \brief Run the same tests all the time
+         *
+         * Note that test cases must call this->runTests(), because
+         * that's how the derived-class templates that implement
+         * type-parameterized tests actually work. */
+        void runTests(ArrayRefType  &arrayRefWithPadding)
         {
-            // Check that we can make a padded view that refers to const elements
-            ConstArrayRefWithPaddingType constArrayRefWithPadding =
-                    arrayRefWithPadding.constArrayRefWithPadding();
+            ASSERT_LE(aSize, arrayRefWithPadding.size());
+            ASSERT_FALSE(arrayRefWithPadding.empty());
+            auto unpaddedArrayRef = arrayRefWithPadding.unpaddedArrayRef();
+            auto paddedArrayRef   = arrayRefWithPadding.paddedArrayRef();
+            EXPECT_LE(unpaddedArrayRef.size(), paddedArrayRef.size());
             for (index i = 0; i != aSize; ++i)
             {
-                EXPECT_EQ(a[i], constArrayRefWithPadding.paddedArrayRef()[i]);
+                EXPECT_EQ(paddedArrayRef[i], unpaddedArrayRef[i]);
+                EXPECT_EQ(a[i], unpaddedArrayRef[i]);
             }
         }
-
-        {
-            // Check that we can implicitly make a padded view that refers to const elements
-            ConstArrayRefWithPaddingType constArrayRefWithPadding = arrayRefWithPadding;
-            for (index i = 0; i != aSize; ++i)
-            {
-                EXPECT_EQ(a[i], constArrayRefWithPadding.paddedArrayRef()[i]);
-            }
-        }
-
-        {
-            // Check that a swap works, by making an empty padded
-            // vector, and a view of it, and observing what
-            // happens when we swap with the one constructed for
-            // the test.
-            PaddedVectorType w;
-            ArrayRefType     view = w.arrayRefWithPadding();
-            EXPECT_TRUE(view.empty());
-
-            view.swap(arrayRefWithPadding);
-            EXPECT_TRUE(arrayRefWithPadding.empty());
-            EXPECT_LE(aSize, view.size());
-            for (index i = 0; i != v.size(); ++i)
-            {
-                EXPECT_EQ(v[i], view.paddedArrayRef()[i]);
-            }
-            // Restore arrayRefWithPadding for future test code
-            view.swap(arrayRefWithPadding);
-        }
-    }
 };
 
 TYPED_TEST_CASE(ArrayRefWithPaddingTest, ArrayRefTypes);
@@ -170,37 +139,39 @@ TYPED_TEST(ArrayRefWithPaddingTest, AssignFromPaddedVectorWorks)
 
 TYPED_TEST(ArrayRefWithPaddingTest, ConstructFromPointersWorks)
 {
-    typename TestFixture::ArrayRefType arrayRef(this->v.data(), this->v.data() + this->v.size(),
+    typename TestFixture::ArrayRefType arrayRef(this->v.data(),
+                                                this->v.data() + this->v.size(),
                                                 this->v.data() + this->v.paddedSize());
     this->runTests(arrayRef);
 }
 
 template<bool c, typename T>
-using makeConstIf_t = std::conditional_t<c, const T, T>;
+using makeConstIf_t = typename std::conditional<c, const T, T>::type;
 
 //! Helper struct for the case actually used in mdrun signalling
-template<typename T>
+template <typename T>
 struct Helper
 {
-public:
-    T   a[3];
-    int size;
+    public:
+        T   a[3];
+        int size;
 };
 
-#else // GTEST_HAS_TYPED_TEST
+#else   // GTEST_HAS_TYPED_TEST
 
 /* A dummy test that at least signals that something is missing if one runs the
  * unit test executable itself.
  */
 TEST(DISABLED_ArrayRefWithPaddingTest, GenericTests)
 {
-    ADD_FAILURE() << "Tests for generic ArrayRefWithPadding functionality require support for "
-                  << "Google Test typed tests, which was not available when the tests "
-                  << "were compiled.";
+    ADD_FAILURE()
+    << "Tests for generic ArrayRefWithPadding functionality require support for "
+    << "Google Test typed tests, which was not available when the tests "
+    << "were compiled.";
 }
 
 #endif // GTEST_HAS_TYPED_TEST
 
-} // namespace
+}      // namespace
 
-} // namespace gmx
+}      // namespace gmx

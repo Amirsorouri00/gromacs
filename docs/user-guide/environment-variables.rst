@@ -244,6 +244,11 @@ Performance and Run Control
         if set to -1, :ref:`gmx mdrun` will
         not exit if it produces too many LINCS warnings.
 
+``GMX_NB_GENERIC``
+        use the generic C kernel.  Should be set if using
+        the group-based cutoff scheme and also sets ``GMX_NO_SOLV_OPT`` to be true,
+        thus disabling solvent optimizations as well.
+
 ``GMX_NB_MIN_CI``
         neighbor list balancing parameter used when running on GPU. Sets the
         target minimum number pair-lists in order to improve multi-processor load-balance for better
@@ -277,6 +282,9 @@ Performance and Run Control
 ``GMX_NOOPTIMIZEDKERNELS``
         deprecated, use ``GMX_DISABLE_SIMD_KERNELS`` instead.
 
+``GMX_NO_ALLVSALL``
+        disables optimized all-vs-all kernels.
+
 ``GMX_NO_CART_REORDER``
         used in initializing domain decomposition communicators. Rank reordering
         is default, but can be switched off with this environment variable.
@@ -303,6 +311,10 @@ Performance and Run Control
 
 ``GMX_NOPREDICT``
         shell positions are not predicted.
+
+``GMX_NO_SOLV_OPT``
+        turns off solvent optimizations; automatic if ``GMX_NB_GENERIC``
+        is enabled.
 
 ``GMX_NO_UPDATEGROUPS``
         turns off update groups. May allow for a decomposition of more
@@ -475,10 +487,6 @@ compilation of OpenCL kernels, but they are also used in device selection.
         Disables the hardware compatibility check. Useful for developers
         and allows testing the OpenCL kernels on non-supported platforms
         (like Intel iGPUs) without source code modification.
-
-``GMX_OCL_SHOW_DIAGNOSTICS``
-        Use Intel OpenCL extension to show additional runtime performance
-        diagnostics.
 
 Analysis and Core Functions
 ---------------------------

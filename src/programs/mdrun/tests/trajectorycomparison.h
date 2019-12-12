@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2016,2017,2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2016,2017,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -59,19 +59,8 @@ struct TrajectoryTolerances
 {
     /*!@{*/
     /*! \brief Tolerances for reproduction of different quantities. */
-    FloatingPointTolerance box, coordinates, velocities, forces;
+    FloatingPointTolerance box, positions, velocities, forces;
     /*!@}*/
-};
-
-//! Enumeration controlling how data within trajectory frames are compared
-enum class ComparisonConditions : int
-{
-    CompareIfBothFound,
-    NoComparison,
-    MustCompare,
-    CompareIfReferenceFound,
-    CompareIfTestFound,
-    Count
 };
 
 /*! \internal
@@ -86,51 +75,38 @@ enum class ComparisonConditions : int
 struct TrajectoryFrameMatchSettings
 {
     //! Whether boxes must be compared.
-    bool mustCompareBox = false;
+    bool mustCompareBox;
+    //! Whether positions must be compared.
+    bool mustComparePositions;
     //! Whether PBC will be handled if it can be handled.
-    bool handlePbcIfPossible = true;
+    bool handlePbcIfPossible;
     //! Whether PBC handling must occur for a valid comparison.
-    bool requirePbcHandling = false;
-    //! Whether position coordinates must be compared.
-    ComparisonConditions coordinatesComparison = ComparisonConditions::CompareIfBothFound;
+    bool requirePbcHandling;
     //! Whether velocities must be compared.
-    ComparisonConditions velocitiesComparison = ComparisonConditions::CompareIfBothFound;
+    bool mustCompareVelocities;
     //! Whether forces must be compared.
-    ComparisonConditions forcesComparison = ComparisonConditions::CompareIfBothFound;
+    bool mustCompareForces;
 };
 
-/*! \internal
- * \brief Function object to compare the fields of the two frames for
- * equality given the \c matchSettings_ and \c tolerances_.
+/*! \brief Compare the fields of the two frames for equality given
+ * the \c matchSettings and \c tolerances.
  *
  * The two frames are required to have valid and matching values for
- * time and step. According to \c matchSettings_, box, position coordinates,
+ * time and step. According to \c matchSettings, box, positions,
  * velocities and/or forces will be compared between frames, using the
- * \c tolerances_. Comparisons will only occur when both frames have
+ * \c tolerances. Comparisons will only occur when both frames have
  * the requisite data, and will be expected to be equal within the
- * matching component of \c tolerances_. If a comparison fails, a
+ * matching component of \c tolerances. If a comparison fails, a
  * GoogleTest expectation failure will be given. If a comparison is
- * required by \c matchSettings_ but cannot be done because either (or
+ * required by \c matchSettings but cannot be done because either (or
  * both) frames lack the requisite data, descriptive expectation
  * failures will be given. */
-class TrajectoryComparison
-{
-public:
-    //! Defaults for trajectory comparisons
-    static const TrajectoryTolerances s_defaultTrajectoryTolerances;
-    //! Constructor
-    TrajectoryComparison(const TrajectoryFrameMatchSettings& matchSettings,
-                         const TrajectoryTolerances&         tolerances);
-    /*! \brief Compare reference with test given the \c
-     * matchSettings_ within \c tolerances_ */
-    void operator()(const TrajectoryFrame& reference, const TrajectoryFrame& test) const;
-    //! Specifies expected behavior in comparisons
-    TrajectoryFrameMatchSettings matchSettings_;
-    //! Trajectory fields to match with given tolerances.
-    TrajectoryTolerances tolerances_;
-};
+void compareTrajectoryFrames(const TrajectoryFrame              &reference,
+                             const TrajectoryFrame              &test,
+                             const TrajectoryFrameMatchSettings &matchSettings,
+                             const TrajectoryTolerances         &tolerances);
 
-} // namespace test
-} // namespace gmx
+}  // namespace test
+}  // namespace gmx
 
 #endif

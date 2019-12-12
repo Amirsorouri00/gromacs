@@ -1,8 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2010-2017, The GROMACS development team.
- * Copyright (c) 2019, by the GROMACS development team, led by
+ * Copyright (c) 2010,2011,2012,2013,2014,2015,2016,2017, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -45,12 +44,12 @@
 #include "abstractoption.h"
 
 #include "gromacs/options/abstractoptionstorage.h"
-#include "gromacs/utility/any.h"
+#include "gromacs/options/optionflags.h"
 #include "gromacs/utility/exceptions.h"
 #include "gromacs/utility/gmxassert.h"
+#include "gromacs/utility/variant.h"
 
 #include "basicoptionstorage.h"
-#include "optionflags.h"
 
 namespace gmx
 {
@@ -59,13 +58,13 @@ namespace gmx
  * AbstractOptionStorage
  */
 
-AbstractOptionStorage::AbstractOptionStorage(const AbstractOption& settings, OptionFlags staticFlags) :
-    flags_(settings.flags_ | staticFlags),
-    storeIsSet_(settings.storeIsSet_),
-    minValueCount_(settings.minValueCount_),
-    maxValueCount_(settings.maxValueCount_),
-    bInSet_(false),
-    bSetValuesHadErrors_(false)
+AbstractOptionStorage::AbstractOptionStorage(const AbstractOption &settings,
+                                             OptionFlags           staticFlags)
+    : flags_(settings.flags_ | staticFlags),
+      storeIsSet_(settings.storeIsSet_),
+      minValueCount_(settings.minValueCount_),
+      maxValueCount_(settings.maxValueCount_),
+      bInSet_(false), bSetValuesHadErrors_(false)
 {
     // Check that user has not provided incorrect values for vectors.
     if (hasFlag(efOption_Vector) && (minValueCount_ > 1 || maxValueCount_ < 1))
@@ -75,7 +74,7 @@ AbstractOptionStorage::AbstractOptionStorage(const AbstractOption& settings, Opt
 
     if (settings.name_ != nullptr)
     {
-        name_ = settings.name_;
+        name_  = settings.name_;
     }
     if (settings.descr_ != nullptr)
     {
@@ -88,11 +87,13 @@ AbstractOptionStorage::AbstractOptionStorage(const AbstractOption& settings, Opt
     setFlag(efOption_ClearOnNextSet);
 }
 
-AbstractOptionStorage::~AbstractOptionStorage() {}
+AbstractOptionStorage::~AbstractOptionStorage()
+{
+}
 
 bool AbstractOptionStorage::isBoolean() const
 {
-    return dynamic_cast<const BooleanOptionStorage*>(this) != nullptr;
+    return dynamic_cast<const BooleanOptionStorage *>(this) != nullptr;
 }
 
 void AbstractOptionStorage::startSource()
@@ -106,7 +107,8 @@ void AbstractOptionStorage::startSet()
     // The last condition takes care of the situation where multiple
     // sources are used, and a later source should be able to reassign
     // the value even though the option is already set.
-    if (isSet() && !hasFlag(efOption_MultipleTimes) && !hasFlag(efOption_ClearOnNextSet))
+    if (isSet() && !hasFlag(efOption_MultipleTimes)
+        && !hasFlag(efOption_ClearOnNextSet))
     {
         GMX_THROW(InvalidInputError("Option specified multiple times"));
     }
@@ -115,14 +117,14 @@ void AbstractOptionStorage::startSet()
     bSetValuesHadErrors_ = false;
 }
 
-void AbstractOptionStorage::appendValue(const Any& value)
+void AbstractOptionStorage::appendValue(const Variant &value)
 {
     GMX_RELEASE_ASSERT(bInSet_, "startSet() not called");
     try
     {
         convertValue(value);
     }
-    catch (const std::exception&)
+    catch (const std::exception &)
     {
         bSetValuesHadErrors_ = true;
         throw;
@@ -175,7 +177,8 @@ void AbstractOptionStorage::setMinValueCount(int count)
                        "setMinValueCount() not supported with efOption_MultipleTimes");
     GMX_RELEASE_ASSERT(count >= 0, "Invalid value count");
     minValueCount_ = count;
-    if (isSet() && !hasFlag(efOption_DontCheckMinimumCount) && valueCount() < minValueCount_)
+    if (isSet() && !hasFlag(efOption_DontCheckMinimumCount)
+        && valueCount() < minValueCount_)
     {
         GMX_THROW(InvalidInputError("Too few values"));
     }
@@ -198,10 +201,15 @@ void AbstractOptionStorage::setMaxValueCount(int count)
  */
 
 /*! \cond libapi */
-OptionInfo::OptionInfo(AbstractOptionStorage* option) : option_(*option) {}
+OptionInfo::OptionInfo(AbstractOptionStorage *option)
+    : option_(*option)
+{
+}
 //! \endcond
 
-OptionInfo::~OptionInfo() {}
+OptionInfo::~OptionInfo()
+{
+}
 
 bool OptionInfo::isSet() const
 {
@@ -232,7 +240,7 @@ int OptionInfo::maxValueCount() const
     return option().maxValueCount();
 }
 
-const std::string& OptionInfo::name() const
+const std::string &OptionInfo::name() const
 {
     return option().name();
 }
@@ -253,7 +261,7 @@ std::string OptionInfo::formatDescription() const
     return description;
 }
 
-std::vector<Any> OptionInfo::defaultValues() const
+std::vector<Variant> OptionInfo::defaultValues() const
 {
     return option().defaultValues();
 }
@@ -263,7 +271,7 @@ std::vector<std::string> OptionInfo::defaultValuesAsStrings() const
     return option().defaultValuesAsStrings();
 }
 
-std::vector<Any> OptionInfo::normalizeValues(const std::vector<Any>& values) const
+std::vector<Variant> OptionInfo::normalizeValues(const std::vector<Variant> &values) const
 {
     return option().normalizeValues(values);
 }

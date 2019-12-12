@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2015,2016,2017,2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2015,2016,2017,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -41,7 +41,7 @@
 #include <cmath>
 
 #include "gromacs/awh/awh.h"
-#include "gromacs/mdtypes/awh_params.h"
+#include "gromacs/mdtypes/awh-params.h"
 #include "gromacs/mdtypes/commrec.h"
 #include "gromacs/trajectory/energyframe.h"
 #include "gromacs/utility/gmxassert.h"
@@ -65,16 +65,17 @@ namespace
  * the iterator of this map, which is based on the enum value
  * (and matches the order of the lines below).
  */
-const std::map<AwhOutputEntryType, Normalization> outputTypeToNormalization = {
-    { AwhOutputEntryType::MetaData, Normalization::None },
-    { AwhOutputEntryType::CoordValue, Normalization::Coordinate },
-    { AwhOutputEntryType::Pmf, Normalization::FreeEnergy },
-    { AwhOutputEntryType::Bias, Normalization::FreeEnergy },
-    { AwhOutputEntryType::Visits, Normalization::Distribution },
-    { AwhOutputEntryType::Weights, Normalization::Distribution },
-    { AwhOutputEntryType::Target, Normalization::Distribution },
+const std::map<AwhOutputEntryType, Normalization> outputTypeToNormalization =
+{
+    { AwhOutputEntryType::MetaData,               Normalization::None },
+    { AwhOutputEntryType::CoordValue,             Normalization::Coordinate },
+    { AwhOutputEntryType::Pmf,                    Normalization::FreeEnergy },
+    { AwhOutputEntryType::Bias,                   Normalization::FreeEnergy },
+    { AwhOutputEntryType::Visits,                 Normalization::Distribution },
+    { AwhOutputEntryType::Weights,                Normalization::Distribution },
+    { AwhOutputEntryType::Target,                 Normalization::Distribution },
     { AwhOutputEntryType::ForceCorrelationVolume, Normalization::Distribution },
-    { AwhOutputEntryType::FrictionTensor, Normalization::None }
+    { AwhOutputEntryType::FrictionTensor,         Normalization::None }
 };
 
 /*! \brief
@@ -84,7 +85,8 @@ const std::map<AwhOutputEntryType, Normalization> outputTypeToNormalization = {
  * \param[in] dimIndex  Dimensional index.
  * \returns the coordinate normalization value.
  */
-float getCoordNormalizationValue(const Bias& bias, int dimIndex)
+float getCoordNormalizationValue(const Bias &bias,
+                                 int         dimIndex)
 {
     /* AWH may use different units internally but here we convert to user units */
     return bias.dimParams()[dimIndex].scaleInternalToUserInput(1);
@@ -98,7 +100,9 @@ float getCoordNormalizationValue(const Bias& bias, int dimIndex)
  * \param[in] numBlocks   The number of blocks for this output type.
  * \returns the normalization value.
  */
-float getNormalizationValue(AwhOutputEntryType outputType, const Bias& bias, int numBlocks)
+float getNormalizationValue(AwhOutputEntryType  outputType,
+                            const Bias         &bias,
+                            int                 numBlocks)
 {
     float normalizationValue = 0;
 
@@ -115,22 +119,25 @@ float getNormalizationValue(AwhOutputEntryType outputType, const Bias& bias, int
         case AwhOutputEntryType::ForceCorrelationVolume:
             normalizationValue = static_cast<double>(bias.state().points().size());
             break;
-        default: break;
+        default:
+            break;
     }
 
     return normalizationValue;
 }
 
-} // namespace
+}   // namespace
 
-AwhEnergyBlock::AwhEnergyBlock(int numPoints, Normalization normalizationType, float normalizationValue) :
+AwhEnergyBlock::AwhEnergyBlock(int            numPoints,
+                               Normalization  normalizationType,
+                               float          normalizationValue) :
     normalizationType(normalizationType),
     normalizationValue(normalizationValue),
     data_(numPoints)
 {
 }
 
-BiasWriter::BiasWriter(const Bias& bias)
+BiasWriter::BiasWriter(const Bias &bias)
 {
     std::map<AwhOutputEntryType, int> outputTypeNumBlock; /* Number of blocks per output type */
 
@@ -138,7 +145,7 @@ BiasWriter::BiasWriter(const Bias& bias)
      * We keep track of the starting block for each variable.
      */
     int blockCount = 0;
-    for (const auto& pair : outputTypeToNormalization)
+    for (const auto &pair : outputTypeToNormalization)
     {
         const AwhOutputEntryType outputType = pair.first;
         {
@@ -162,7 +169,7 @@ BiasWriter::BiasWriter(const Bias& bias)
     }
 
     /* Initialize the data blocks for each variable */
-    for (const auto& pair : outputTypeToNormalization)
+    for (const auto &pair : outputTypeToNormalization)
     {
         const AwhOutputEntryType outputType = pair.first;
         int                      numPoints;
@@ -176,7 +183,9 @@ BiasWriter::BiasWriter(const Bias& bias)
         }
         for (int b = 0; b < outputTypeNumBlock[outputType]; b++)
         {
-            block_.emplace_back(numPoints, pair.second, getNormalizationValue(outputType, bias, b));
+            block_.emplace_back(numPoints,
+                                pair.second,
+                                getNormalizationValue(outputType, bias, b));
         }
     }
 }
@@ -187,7 +196,7 @@ BiasWriter::BiasWriter(const Bias& bias)
  * \param[in,out] block  The block to normalize.
  * \param[in]     bias   The AWH bias.
  */
-static void normalizeBlock(AwhEnergyBlock* block, const Bias& bias)
+static void normalizeBlock(AwhEnergyBlock *block, const Bias &bias)
 {
     gmx::ArrayRef<float> data = block->data();
 
@@ -201,24 +210,25 @@ static void normalizeBlock(AwhEnergyBlock* block, const Bias& bias)
 
     switch (block->normalizationType)
     {
-        case Normalization::None: break;
+        case Normalization::None:
+            break;
         case Normalization::Coordinate:
             /* Normalize coordinate values by a scale factor */
-            for (float& point : data)
+            for (float &point : data)
             {
                 point *= block->normalizationValue;
             }
             break;
         case Normalization::FreeEnergy:
             /* Normalize free energy values by subtracting the minimum value */
-            for (gmx::index index = 0; index < data.ssize(); index++)
+            for (gmx::index index = 0; index < data.size(); index++)
             {
                 if (bias.state().points()[index].inTargetRegion() && data[index] < minValue)
                 {
                     minValue = data[index];
                 }
             }
-            for (gmx::index index = 0; index < data.ssize(); index++)
+            for (gmx::index index = 0; index < data.size(); index++)
             {
                 if (bias.state().points()[index].inTargetRegion())
                 {
@@ -229,30 +239,31 @@ static void normalizeBlock(AwhEnergyBlock* block, const Bias& bias)
             break;
         case Normalization::Distribution:
             /* Normalize distribution values by normalizing their sum */
-            for (float& point : data)
+            for (float &point : data)
             {
                 sum += point;
             }
             if (sum > 0)
             {
-                recipNorm = block->normalizationValue / static_cast<float>(sum);
+                recipNorm = block->normalizationValue/static_cast<float>(sum);
             }
-            for (float& point : data)
+            for (float &point : data)
             {
                 point *= recipNorm;
             }
             break;
-        default: GMX_RELEASE_ASSERT(false, "Unknown AWH normalization type"); break;
+        default:
+            GMX_RELEASE_ASSERT(false, "Unknown AWH normalization type");
+            break;
     }
 }
 
-void BiasWriter::transferMetaDataToWriter(gmx::index        metaDataIndex,
-                                          AwhOutputMetaData metaDataType,
-                                          const Bias&       bias)
+void BiasWriter::transferMetaDataToWriter(gmx::index         metaDataIndex,
+                                          AwhOutputMetaData  metaDataType,
+                                          const Bias        &bias)
 {
     gmx::ArrayRef<float> data = block_[getVarStartBlock(AwhOutputEntryType::MetaData)].data();
-    GMX_ASSERT(metaDataIndex < data.ssize(),
-               "Attempt to transfer AWH meta data to block for index out of range");
+    GMX_ASSERT(metaDataIndex < data.size(), "Attempt to transfer AWH meta data to block for index out of range");
 
     /* Transfer the point data of this variable to the right block(s) */
     switch (metaDataType)
@@ -264,32 +275,31 @@ void BiasWriter::transferMetaDataToWriter(gmx::index        metaDataIndex,
             break;
         case AwhOutputMetaData::TargetError:
             /* The theoretical target error */
-            data[metaDataIndex] = bias.params().initialErrorInKT
-                                  * std::sqrt(bias.params().initialHistogramSize
-                                              / bias.state().histogramSize().histogramSize());
+            data[metaDataIndex] = bias.params().initialErrorInKT*std::sqrt(bias.params().initialHistogramSize/bias.state().histogramSize().histogramSize());
             break;
         case AwhOutputMetaData::ScaledSampleWeight:
             /* The logarithm of the sample weight relative to a sample weight of 1 at the initial time.
                In the normal case: this will increase in the initial stage and then stay at a constant value. */
             data[metaDataIndex] = bias.state().histogramSize().logScaledSampleWeight();
             break;
-        case AwhOutputMetaData::Count: break;
+        case AwhOutputMetaData::Count:
+            break;
     }
 }
 
-void BiasWriter::transferPointDataToWriter(AwhOutputEntryType         outputType,
-                                           int                        pointIndex,
-                                           const Bias&                bias,
-                                           gmx::ArrayRef<const float> pmf)
+void
+BiasWriter::transferPointDataToWriter(AwhOutputEntryType          outputType,
+                                      int                         pointIndex,
+                                      const Bias                 &bias,
+                                      gmx::ArrayRef<const float>  pmf)
 {
     /* The starting block index of this output type.
      * Note that some variables need several (contiguous) blocks.
      */
     int blockStart = getVarStartBlock(outputType);
-    GMX_ASSERT(pointIndex < static_cast<int>(block_[blockStart].data().size()),
-               "Attempt to transfer AWH data to block for point index out of range");
+    GMX_ASSERT(pointIndex < static_cast<int>(block_[blockStart].data().size()), "Attempt to transfer AWH data to block for point index out of range");
 
-    const CorrelationGrid& forceCorrelation = bias.forceCorrelationGrid();
+    const CorrelationGrid &forceCorrelation = bias.forceCorrelationGrid();
     int                    numCorrelation   = forceCorrelation.tensorSize();
 
     /* Transfer the point data of this variable to the right block(s) */
@@ -301,7 +311,7 @@ void BiasWriter::transferPointDataToWriter(AwhOutputEntryType         outputType
             break;
         case AwhOutputEntryType::CoordValue:
         {
-            const awh_dvec& coordValue = bias.getGridCoordValue(pointIndex);
+            const awh_dvec &coordValue = bias.getGridCoordValue(pointIndex);
             for (int d = 0; d < bias.ndim(); d++)
             {
                 block_[b].data()[pointIndex] = coordValue[d];
@@ -310,15 +320,12 @@ void BiasWriter::transferPointDataToWriter(AwhOutputEntryType         outputType
         }
         break;
         case AwhOutputEntryType::Pmf:
-            block_[b].data()[pointIndex] =
-                    bias.state().points()[pointIndex].inTargetRegion() ? pmf[pointIndex] : 0;
+            block_[b].data()[pointIndex] = bias.state().points()[pointIndex].inTargetRegion() ? pmf[pointIndex] : 0;
             break;
         case AwhOutputEntryType::Bias:
         {
-            const awh_dvec& coordValue   = bias.getGridCoordValue(pointIndex);
-            block_[b].data()[pointIndex] = bias.state().points()[pointIndex].inTargetRegion()
-                                                   ? bias.calcConvolvedBias(coordValue)
-                                                   : 0;
+            const awh_dvec &coordValue = bias.getGridCoordValue(pointIndex);
+            block_[b].data()[pointIndex] = bias.state().points()[pointIndex].inTargetRegion() ? bias.calcConvolvedBias(coordValue) : 0;
         }
         break;
         case AwhOutputEntryType::Visits:
@@ -331,23 +338,23 @@ void BiasWriter::transferPointDataToWriter(AwhOutputEntryType         outputType
             block_[b].data()[pointIndex] = bias.state().points()[pointIndex].target();
             break;
         case AwhOutputEntryType::ForceCorrelationVolume:
-            block_[b].data()[pointIndex] =
-                    forceCorrelation.tensors()[pointIndex].getVolumeElement(forceCorrelation.dtSample);
+            block_[b].data()[pointIndex] = forceCorrelation.tensors()[pointIndex].getVolumeElement(forceCorrelation.dtSample);
             break;
         case AwhOutputEntryType::FrictionTensor:
             /* Store force correlation in units of friction, i.e. time/length^2 */
             for (int n = 0; n < numCorrelation; n++)
             {
-                block_[b].data()[pointIndex] = forceCorrelation.tensors()[pointIndex].getTimeIntegral(
-                        n, forceCorrelation.dtSample);
+                block_[b].data()[pointIndex] = forceCorrelation.tensors()[pointIndex].getTimeIntegral(n, forceCorrelation.dtSample);
                 b++;
             }
             break;
-        default: GMX_RELEASE_ASSERT(false, "Unknown AWH output variable"); break;
+        default:
+            GMX_RELEASE_ASSERT(false, "Unknown AWH output variable");
+            break;
     }
 }
 
-void BiasWriter::prepareBiasOutput(const Bias& bias)
+void BiasWriter::prepareBiasOutput(const Bias &bias)
 {
     /* Pack the AWH data into the writer data. */
 
@@ -355,7 +362,7 @@ void BiasWriter::prepareBiasOutput(const Bias& bias)
     gmx::ArrayRef<float> pmf = block_[getVarStartBlock(AwhOutputEntryType::Pmf)].data();
     bias.state().getPmf(pmf);
 
-    /* Pack the data point by point.
+    /* Pack the the data point by point.
      * Unfortunately we can not loop over a class enum, so we cast to int.
      * \todo Use strings instead of enum when we port the output to TNG.
      */
@@ -363,7 +370,7 @@ void BiasWriter::prepareBiasOutput(const Bias& bias)
     {
         transferMetaDataToWriter(i, static_cast<AwhOutputMetaData>(i), bias);
     }
-    for (const auto& pair : outputTypeToNormalization)
+    for (const auto &pair : outputTypeToNormalization)
     {
         const AwhOutputEntryType outputType = pair.first;
         /* Skip metadata (transfered above) and unused blocks */
@@ -378,13 +385,14 @@ void BiasWriter::prepareBiasOutput(const Bias& bias)
     }
 
     /* For looks of the output, normalize it */
-    for (AwhEnergyBlock& block : block_)
+    for (AwhEnergyBlock &block : block_)
     {
         normalizeBlock(&block, bias);
     }
 }
 
-int BiasWriter::writeToEnergySubblocks(const Bias& bias, t_enxsubblock* sub)
+int BiasWriter::writeToEnergySubblocks(const Bias    &bias,
+                                       t_enxsubblock *sub)
 {
     prepareBiasOutput(bias);
 
@@ -398,4 +406,4 @@ int BiasWriter::writeToEnergySubblocks(const Bias& bias, t_enxsubblock* sub)
     return block_.size();
 }
 
-} // namespace gmx
+}  // namespace gmx

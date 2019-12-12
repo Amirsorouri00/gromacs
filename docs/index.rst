@@ -10,8 +10,7 @@ Welcome to the |Gromacs| documentation!
 
 .. only:: html
 
-        The complete documentation is also available as a `printable PDF here`_. The documentation
-        for other versions of |GROMACS| can be found at http://manual.gromacs.org/documentation
+        The complete documentation is also available as a `printable PDF here`_.
 
         .. toctree::
            :maxdepth: 1
@@ -22,7 +21,6 @@ Welcome to the |Gromacs| documentation!
            user-guide/index
            how-to/index
            reference-manual/index
-           gmxapi/index
            dev-manual/index
         
         ==================
@@ -43,7 +41,6 @@ Welcome to the |Gromacs| documentation!
             user-guide/index
             how-to/index
             reference-manual/index
-            gmxapi/index
             dev-manual/index
 
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2016,2017,2019, by the GROMACS development team, led by
+ * Copyright (c) 2016,2017, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -73,14 +73,19 @@ namespace gmx
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
+template <int align>
 static inline void
-gatherLoadTranspose(const float* base, const std::int32_t offset[], float* v0, float* v1, float* v2, float* v3)
+gatherLoadTranspose(const float  *        base,
+                    const std::int32_t    offset[],
+                    float *               v0,
+                    float *               v1,
+                    float *               v2,
+                    float *               v3)
 {
-    *v0 = base[align * offset[0]];
-    *v1 = base[align * offset[0] + 1];
-    *v2 = base[align * offset[0] + 2];
-    *v3 = base[align * offset[0] + 3];
+    *v0 = base[align*offset[0]];
+    *v1 = base[align*offset[0]+1];
+    *v2 = base[align*offset[0]+2];
+    *v3 = base[align*offset[0]+3];
 }
 
 /*! \brief Load 2 consecutive floats from base/offset into four variables
@@ -95,11 +100,15 @@ gatherLoadTranspose(const float* base, const std::int32_t offset[], float* v0, f
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadTranspose(const float* base, const std::int32_t offset[], float* v0, float* v1)
+template <int align>
+static inline void
+gatherLoadTranspose(const float  *        base,
+                    const std::int32_t    offset[],
+                    float *               v0,
+                    float *               v1)
 {
-    *v0 = base[align * offset[0]];
-    *v1 = base[align * offset[0] + 1];
+    *v0 = base[align*offset[0]];
+    *v1 = base[align*offset[0]+1];
 }
 
 
@@ -117,13 +126,17 @@ static inline void gatherLoadTranspose(const float* base, const std::int32_t off
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
+template <int align>
 static inline void
-gatherLoadUTranspose(const float* base, const std::int32_t offset[], float* v0, float* v1, float* v2)
+gatherLoadUTranspose(const float  *        base,
+                     const std::int32_t    offset[],
+                     float *               v0,
+                     float *               v1,
+                     float *               v2)
 {
-    *v0 = base[align * offset[0]];
-    *v1 = base[align * offset[0] + 1];
-    *v2 = base[align * offset[0] + 2];
+    *v0 = base[align*offset[0]];
+    *v1 = base[align*offset[0]+1];
+    *v2 = base[align*offset[0]+2];
 }
 
 /*! \brief Store 3 floats to 3 to base/offset.
@@ -140,12 +153,17 @@ gatherLoadUTranspose(const float* base, const std::int32_t offset[], float* v0, 
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void transposeScatterStoreU(float* base, const std::int32_t offset[], float v0, float v1, float v2)
+template <int align>
+static inline void
+transposeScatterStoreU(float  *              base,
+                       const std::int32_t    offset[],
+                       float                 v0,
+                       float                 v1,
+                       float                 v2)
 {
-    base[align * offset[0]]     = v0;
-    base[align * offset[0] + 1] = v1;
-    base[align * offset[0] + 2] = v2;
+    base[align*offset[0]]   = v0;
+    base[align*offset[0]+1] = v1;
+    base[align*offset[0]+2] = v2;
 }
 
 /*! \brief Add 3 floats to base/offset.
@@ -162,12 +180,17 @@ static inline void transposeScatterStoreU(float* base, const std::int32_t offset
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void transposeScatterIncrU(float* base, const std::int32_t offset[], float v0, float v1, float v2)
+template <int align>
+static inline void
+transposeScatterIncrU(float  *              base,
+                      const std::int32_t    offset[],
+                      float                 v0,
+                      float                 v1,
+                      float                 v2)
 {
-    base[align * offset[0]] += v0;
-    base[align * offset[0] + 1] += v1;
-    base[align * offset[0] + 2] += v2;
+    base[align*offset[0]]   += v0;
+    base[align*offset[0]+1] += v1;
+    base[align*offset[0]+2] += v2;
 }
 
 /*! \brief Subtract 3 floats from base/offset.
@@ -184,12 +207,17 @@ static inline void transposeScatterIncrU(float* base, const std::int32_t offset[
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void transposeScatterDecrU(float* base, const std::int32_t offset[], float v0, float v1, float v2)
+template <int align>
+static inline void
+transposeScatterDecrU(float  *              base,
+                      const std::int32_t    offset[],
+                      float                 v0,
+                      float                 v1,
+                      float                 v2)
 {
-    base[align * offset[0]] -= v0;
-    base[align * offset[0] + 1] -= v1;
-    base[align * offset[0] + 2] -= v2;
+    base[align*offset[0]]   -= v0;
+    base[align*offset[0]+1] -= v1;
+    base[align*offset[0]+2] -= v2;
 }
 
 /*! \brief Copy single float to three variables.
@@ -203,7 +231,11 @@ static inline void transposeScatterDecrU(float* base, const std::int32_t offset[
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-static inline void expandScalarsToTriplets(float scalar, float* triplets0, float* triplets1, float* triplets2)
+static inline void
+expandScalarsToTriplets(float    scalar,
+                        float *  triplets0,
+                        float *  triplets1,
+                        float *  triplets2)
 {
     *triplets0 = scalar;
     *triplets1 = scalar;
@@ -225,14 +257,19 @@ static inline void expandScalarsToTriplets(float scalar, float* triplets0, float
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
+template <int align>
 static inline void
-gatherLoadBySimdIntTranspose(const float* base, std::int32_t offset, float* v0, float* v1, float* v2, float* v3)
+gatherLoadBySimdIntTranspose(const float *       base,
+                             std::int32_t        offset,
+                             float *             v0,
+                             float *             v1,
+                             float *             v2,
+                             float *             v3)
 {
-    *v0 = base[align * offset];
-    *v1 = base[align * offset + 1];
-    *v2 = base[align * offset + 2];
-    *v3 = base[align * offset + 3];
+    *v0 = base[align*offset];
+    *v1 = base[align*offset+1];
+    *v2 = base[align*offset+2];
+    *v3 = base[align*offset+3];
 }
 
 /*! \brief Load 2 floats from base/offsets and store into variables (unaligned).
@@ -248,11 +285,15 @@ gatherLoadBySimdIntTranspose(const float* base, std::int32_t offset, float* v0, 
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadUBySimdIntTranspose(const float* base, std::int32_t offset, float* v0, float* v1)
+template <int align>
+static inline void
+gatherLoadUBySimdIntTranspose(const float *       base,
+                              std::int32_t        offset,
+                              float *             v0,
+                              float *             v1)
 {
-    *v0 = base[align * offset];
-    *v1 = base[align * offset + 1];
+    *v0 = base[align*offset];
+    *v1 = base[align*offset+1];
 }
 
 /*! \brief Load 2 floats from base/offsets and store into variables (aligned).
@@ -268,11 +309,15 @@ static inline void gatherLoadUBySimdIntTranspose(const float* base, std::int32_t
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadBySimdIntTranspose(const float* base, std::int32_t offset, float* v0, float* v1)
+template <int align>
+static inline void
+gatherLoadBySimdIntTranspose(const float *       base,
+                             std::int32_t        offset,
+                             float *             v0,
+                             float *             v1)
 {
-    *v0 = base[align * offset];
-    *v1 = base[align * offset + 1];
+    *v0 = base[align*offset];
+    *v1 = base[align*offset+1];
 }
 
 /*! \brief Add each float to four consecutive memory locations, return sum.
@@ -289,7 +334,12 @@ static inline void gatherLoadBySimdIntTranspose(const float* base, std::int32_t 
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-static inline float reduceIncr4ReturnSum(float* m, float v0, float v1, float v2, float v3)
+static inline float
+reduceIncr4ReturnSum(float *           m,
+                     float             v0,
+                     float             v1,
+                     float             v2,
+                     float             v3)
 {
     m[0] += v0;
     m[1] += v1;
@@ -318,18 +368,19 @@ static inline float reduceIncr4ReturnSum(float* m, float v0, float v1, float v2,
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadTranspose(const double*      base,
-                                       const std::int32_t offset[],
-                                       double*            v0,
-                                       double*            v1,
-                                       double*            v2,
-                                       double*            v3)
+template <int align>
+static inline void
+gatherLoadTranspose(const double  *        base,
+                    const std::int32_t     offset[],
+                    double *               v0,
+                    double *               v1,
+                    double *               v2,
+                    double *               v3)
 {
-    *v0 = base[align * offset[0]];
-    *v1 = base[align * offset[0] + 1];
-    *v2 = base[align * offset[0] + 2];
-    *v3 = base[align * offset[0] + 3];
+    *v0 = base[align*offset[0]];
+    *v1 = base[align*offset[0]+1];
+    *v2 = base[align*offset[0]+2];
+    *v3 = base[align*offset[0]+3];
 }
 
 /*! \brief Load 2 consecutive doubles from base/offset into four variables
@@ -344,11 +395,15 @@ static inline void gatherLoadTranspose(const double*      base,
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadTranspose(const double* base, const std::int32_t offset[], double* v0, double* v1)
+template <int align>
+static inline void
+gatherLoadTranspose(const double  *        base,
+                    const std::int32_t     offset[],
+                    double *               v0,
+                    double *               v1)
 {
-    *v0 = base[align * offset[0]];
-    *v1 = base[align * offset[0] + 1];
+    *v0 = base[align*offset[0]];
+    *v1 = base[align*offset[0]+1];
 }
 
 
@@ -366,13 +421,17 @@ static inline void gatherLoadTranspose(const double* base, const std::int32_t of
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
+template <int align>
 static inline void
-gatherLoadUTranspose(const double* base, const std::int32_t offset[], double* v0, double* v1, double* v2)
+gatherLoadUTranspose(const double  *        base,
+                     const std::int32_t     offset[],
+                     double *               v0,
+                     double *               v1,
+                     double *               v2)
 {
-    *v0 = base[align * offset[0]];
-    *v1 = base[align * offset[0] + 1];
-    *v2 = base[align * offset[0] + 2];
+    *v0 = base[align*offset[0]];
+    *v1 = base[align*offset[0]+1];
+    *v2 = base[align*offset[0]+2];
 }
 
 /*! \brief Store 3 doubles to 3 to base/offset.
@@ -389,12 +448,17 @@ gatherLoadUTranspose(const double* base, const std::int32_t offset[], double* v0
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void transposeScatterStoreU(double* base, const std::int32_t offset[], double v0, double v1, double v2)
+template <int align>
+static inline void
+transposeScatterStoreU(double  *             base,
+                       const std::int32_t    offset[],
+                       double                v0,
+                       double                v1,
+                       double                v2)
 {
-    base[align * offset[0]]     = v0;
-    base[align * offset[0] + 1] = v1;
-    base[align * offset[0] + 2] = v2;
+    base[align*offset[0]]   = v0;
+    base[align*offset[0]+1] = v1;
+    base[align*offset[0]+2] = v2;
 }
 
 /*! \brief Add 3 doubles to base/offset.
@@ -411,12 +475,17 @@ static inline void transposeScatterStoreU(double* base, const std::int32_t offse
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void transposeScatterIncrU(double* base, const std::int32_t offset[], double v0, double v1, double v2)
+template <int align>
+static inline void
+transposeScatterIncrU(double  *              base,
+                      const std::int32_t     offset[],
+                      double                 v0,
+                      double                 v1,
+                      double                 v2)
 {
-    base[align * offset[0]] += v0;
-    base[align * offset[0] + 1] += v1;
-    base[align * offset[0] + 2] += v2;
+    base[align*offset[0]]   += v0;
+    base[align*offset[0]+1] += v1;
+    base[align*offset[0]+2] += v2;
 }
 
 /*! \brief Subtract 3 doubles from base/offset.
@@ -433,12 +502,17 @@ static inline void transposeScatterIncrU(double* base, const std::int32_t offset
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void transposeScatterDecrU(double* base, const std::int32_t offset[], double v0, double v1, double v2)
+template <int align>
+static inline void
+transposeScatterDecrU(double  *              base,
+                      const std::int32_t     offset[],
+                      double                 v0,
+                      double                 v1,
+                      double                 v2)
 {
-    base[align * offset[0]] -= v0;
-    base[align * offset[0] + 1] -= v1;
-    base[align * offset[0] + 2] -= v2;
+    base[align*offset[0]]   -= v0;
+    base[align*offset[0]+1] -= v1;
+    base[align*offset[0]+2] -= v2;
 }
 
 /*! \brief Copy single double to three variables.
@@ -452,7 +526,11 @@ static inline void transposeScatterDecrU(double* base, const std::int32_t offset
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-static inline void expandScalarsToTriplets(double scalar, double* triplets0, double* triplets1, double* triplets2)
+static inline void
+expandScalarsToTriplets(double    scalar,
+                        double *  triplets0,
+                        double *  triplets1,
+                        double *  triplets2)
 {
     *triplets0 = scalar;
     *triplets1 = scalar;
@@ -474,18 +552,19 @@ static inline void expandScalarsToTriplets(double scalar, double* triplets0, dou
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadBySimdIntTranspose(const double* base,
-                                                std::int32_t  offset,
-                                                double*       v0,
-                                                double*       v1,
-                                                double*       v2,
-                                                double*       v3)
+template <int align>
+static inline void
+gatherLoadBySimdIntTranspose(const double *       base,
+                             std::int32_t         offset,
+                             double *             v0,
+                             double *             v1,
+                             double *             v2,
+                             double *             v3)
 {
-    *v0 = base[align * offset];
-    *v1 = base[align * offset + 1];
-    *v2 = base[align * offset + 2];
-    *v3 = base[align * offset + 3];
+    *v0 = base[align*offset];
+    *v1 = base[align*offset+1];
+    *v2 = base[align*offset+2];
+    *v3 = base[align*offset+3];
 }
 
 /*! \brief Load 2 doubles from base/offsets and store into variables (unaligned).
@@ -501,11 +580,15 @@ static inline void gatherLoadBySimdIntTranspose(const double* base,
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadUBySimdIntTranspose(const double* base, std::int32_t offset, double* v0, double* v1)
+template <int align>
+static inline void
+gatherLoadUBySimdIntTranspose(const double *       base,
+                              std::int32_t         offset,
+                              double *             v0,
+                              double *             v1)
 {
-    *v0 = base[align * offset];
-    *v1 = base[align * offset + 1];
+    *v0 = base[align*offset];
+    *v1 = base[align*offset+1];
 }
 
 /*! \brief Load 2 doubles from base/offsets and store into variables (aligned).
@@ -521,11 +604,15 @@ static inline void gatherLoadUBySimdIntTranspose(const double* base, std::int32_
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-template<int align>
-static inline void gatherLoadBySimdIntTranspose(const double* base, std::int32_t offset, double* v0, double* v1)
+template <int align>
+static inline void
+gatherLoadBySimdIntTranspose(const double *      base,
+                             std::int32_t        offset,
+                             double *            v0,
+                             double *            v1)
 {
-    *v0 = base[align * offset];
-    *v1 = base[align * offset + 1];
+    *v0 = base[align*offset];
+    *v1 = base[align*offset+1];
 }
 
 /*! \brief Add each double to four consecutive memory locations, return sum.
@@ -542,7 +629,12 @@ static inline void gatherLoadBySimdIntTranspose(const double* base, std::int32_t
  *       write templated SIMD/non-SIMD code. For clarity it should not be used
  *       outside such code.
  */
-static inline double reduceIncr4ReturnSum(double* m, double v0, double v1, double v2, double v3)
+static inline double
+reduceIncr4ReturnSum(double *           m,
+                     double             v0,
+                     double             v1,
+                     double             v2,
+                     double             v3)
 {
     m[0] += v0;
     m[1] += v1;

@@ -1,7 +1,7 @@
 /*
  * This file is part of the GROMACS molecular simulation package.
  *
- * Copyright (c) 2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -46,13 +46,12 @@
 
 #include "gromacs/domdec/domdec.h"
 #include "gromacs/ewald/pme.h"
-#include "gromacs/ewald/pme_load_balancing.h"
+#include "gromacs/ewald/pme-load-balancing.h"
 #include "gromacs/gmxlib/nrnb.h"
 #include "gromacs/gpu_utils/gpu_utils.h"
-#include "gromacs/mdrunutility/printtime.h"
+#include "gromacs/mdlib/nbnxn_gpu_data_mgmt.h"
+#include "gromacs/mdlib/sim_util.h"
 #include "gromacs/mdtypes/commrec.h"
-#include "gromacs/nbnxm/gpu_data_mgmt.h"
-#include "gromacs/nbnxm/nbnxm.h"
 #include "gromacs/timing/walltime_accounting.h"
 #include "gromacs/utility/cstringutil.h"
 #include "gromacs/utility/fatalerror.h"
@@ -72,15 +71,16 @@ static inline ResetSignal convertToResetSignal(signed char sig)
     return sig >= 1 ? ResetSignal::doResetCounters : ResetSignal::noSignal;
 }
 
-ResetHandler::ResetHandler(compat::not_null<SimulationSignal*> signal,
-                           bool                                simulationsShareState,
-                           int64_t                             nsteps,
-                           bool                                isMaster,
-                           bool                                resetHalfway,
-                           real                                maximumHoursToRun,
-                           const MDLogger&                     mdlog,
-                           gmx_wallcycle_t                     wcycle,
-                           gmx_walltime_accounting_t           walltime_accounting) :
+ResetHandler::ResetHandler(
+        compat::not_null<SimulationSignal*> signal,
+        bool                                simulationsShareState,
+        int64_t                             nsteps,
+        bool                                isMaster,
+        bool                                resetHalfway,
+        real                                maximumHoursToRun,
+        const MDLogger                     &mdlog,
+        gmx_wallcycle_t                     wcycle,
+        gmx_walltime_accounting_t           walltime_accounting) :
     signal_(*signal),
     rankCanSetSignal_(false),
     simulationNeedsReset_(false),
@@ -92,11 +92,9 @@ ResetHandler::ResetHandler(compat::not_null<SimulationSignal*> signal,
     }
     if (resetHalfway)
     {
-        GMX_LOG(mdlog.info)
-                .asParagraph()
-                .appendText(
-                        "The -resethway functionality is deprecated, and may be removed in a "
-                        "future version.");
+        GMX_LOG(mdlog.info).asParagraph().
+            appendText(
+                "The -resethway functionality is deprecated, and may be removed in a future version.");
         if (nsteps > 0)
         {
             /* Signal to reset the counters half the simulation steps. */
@@ -134,21 +132,22 @@ bool ResetHandler::setSignalImpl(gmx_walltime_accounting_t walltime_accounting)
     return false;
 }
 
-bool ResetHandler::resetCountersImpl(int64_t                     step,
-                                     int64_t                     step_rel,
-                                     const MDLogger&             mdlog,
-                                     FILE*                       fplog,
-                                     const t_commrec*            cr,
-                                     nonbonded_verlet_t*         nbv,
-                                     t_nrnb*                     nrnb,
-                                     const gmx_pme_t*            pme,
-                                     const pme_load_balancing_t* pme_loadbal,
-                                     gmx_wallcycle_t             wcycle,
-                                     gmx_walltime_accounting_t   walltime_accounting)
+bool ResetHandler::resetCountersImpl(
+        int64_t                     step,
+        int64_t                     step_rel,
+        const MDLogger             &mdlog,
+        FILE                       *fplog,
+        const t_commrec            *cr,
+        nonbonded_verlet_t         *nbv,
+        t_nrnb                     *nrnb,
+        const gmx_pme_t            *pme,
+        const pme_load_balancing_t *pme_loadbal,
+        gmx_wallcycle_t             wcycle,
+        gmx_walltime_accounting_t   walltime_accounting)
 {
     /* Reset either if signal has been passed, or if reset step has been reached */
-    if (convertToResetSignal(signal_.set) == ResetSignal::doResetCounters
-        || step_rel == wcycle_get_reset_counters(wcycle))
+    if (convertToResetSignal(signal_.set) == ResetSignal::doResetCounters ||
+        step_rel == wcycle_get_reset_counters(wcycle))
     {
         if (pme_loadbal_is_active(pme_loadbal))
         {
@@ -161,26 +160,22 @@ bool ResetHandler::resetCountersImpl(int64_t                     step,
              * TODO consider fixing this by delaying the reset
              * until after load balancing completes,
              * e.g. https://gerrit.gromacs.org/#/c/4964/2 */
-            gmx_fatal(FARGS,
-                      "PME tuning was still active when attempting to "
-                      "reset mdrun counters at step %" PRId64
-                      ". Try "
+            gmx_fatal(FARGS, "PME tuning was still active when attempting to "
+                      "reset mdrun counters at step %" PRId64 ". Try "
                       "resetting counters later in the run, e.g. with gmx "
-                      "mdrun -resetstep.",
-                      step);
+                      "mdrun -resetstep.", step);
         }
 
         char sbuf[STEPSTRSIZE];
 
         /* Reset all the counters related to performance over the run */
-        GMX_LOG(mdlog.warning)
-                .asParagraph()
-                .appendTextFormatted("step %s: resetting all time and cycle counters",
-                                     gmx_step_str(step, sbuf));
+        GMX_LOG(mdlog.warning).asParagraph().appendTextFormatted(
+                "step %s: resetting all time and cycle counters",
+                gmx_step_str(step, sbuf));
 
-        if (nbv && nbv->useGpu())
+        if (use_GPU(nbv))
         {
-            Nbnxm::gpu_reset_timings(nbv);
+            nbnxn_gpu_reset_timings(nbv);
         }
 
         if (pme_gpu_task_enabled(pme))
@@ -188,7 +183,7 @@ bool ResetHandler::resetCountersImpl(int64_t                     step,
             pme_gpu_reset_timings(pme);
         }
 
-        if ((nbv && nbv->useGpu()) || pme_gpu_task_enabled(pme))
+        if (use_GPU(nbv) || pme_gpu_task_enabled(pme))
         {
             resetGpuProfiler();
         }
@@ -199,7 +194,7 @@ bool ResetHandler::resetCountersImpl(int64_t                     step,
         {
             reset_dd_statistics_counters(cr->dd);
         }
-        clear_nrnb(nrnb);
+        init_nrnb(nrnb);
         wallcycle_start(wcycle, ewcRUN);
         walltime_accounting_reset_time(walltime_accounting, step);
         print_date_and_time(fplog, cr->nodeid, "Restarted time", gmx_gettime());
@@ -222,4 +217,4 @@ bool ResetHandler::resetCountersImpl(int64_t                     step,
     return false;
 }
 
-} // namespace gmx
+}  // namespace gmx

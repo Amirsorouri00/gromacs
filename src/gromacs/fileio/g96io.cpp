@@ -3,7 +3,7 @@
  *
  * Copyright (c) 1991-2000, University of Groningen, The Netherlands.
  * Copyright (c) 2001-2004, The GROMACS development team.
- * Copyright (c) 2013,2014,2015,2016,2017,2018,2019, by the GROMACS development team, led by
+ * Copyright (c) 2013,2014,2015,2016,2017,2018, by the GROMACS development team, led by
  * Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
  * and including many others, as listed in the AUTHORS file in the
  * top-level source directory and at http://www.gromacs.org.
@@ -53,22 +53,22 @@
 
 #define CHAR_SHIFT 24
 
-static int read_g96_pos(char line[], t_symtab* symtab, FILE* fp, const char* infile, t_trxframe* fr)
+static int read_g96_pos(char line[], t_symtab *symtab,
+                        FILE *fp, const char *infile,
+                        t_trxframe *fr)
 {
-    t_atoms* atoms;
-    gmx_bool bEnd;
-    int      nwanted, natoms, atnr, resnr = 0, oldres, newres, shift;
-    char     anm[STRLEN], resnm[STRLEN];
-    char     c1, c2;
-    double   db1, db2, db3;
+    t_atoms   *atoms;
+    gmx_bool   bEnd;
+    int        nwanted, natoms, atnr, resnr = 0, oldres, newres, shift;
+    char       anm[STRLEN], resnm[STRLEN];
+    char       c1, c2;
+    double     db1, db2, db3;
 
     nwanted = fr->natoms;
 
     if (fr->atoms != nullptr)
     {
-        GMX_RELEASE_ASSERT(symtab != nullptr,
-                           "Reading a conformation from a g96 format with atom data requires a "
-                           "valid symbol table");
+        GMX_RELEASE_ASSERT(symtab != nullptr, "Reading a conformation from a g96 format with atom data requires a valid symbol table");
     }
     atoms = fr->atoms;
     if (atoms != nullptr)
@@ -92,27 +92,30 @@ static int read_g96_pos(char line[], t_symtab* symtab, FILE* fp, const char* inf
         {
             shift = 0;
         }
-        newres = -1;
-        oldres = -666; /* Unlikely number for the first residue! */
-        bEnd   = FALSE;
+        newres  = -1;
+        oldres  = -666; /* Unlikely number for the first residue! */
+        bEnd    = FALSE;
         while (!bEnd && fgets2(line, STRLEN, fp))
         {
             bEnd = (std::strncmp(line, "END", 3) == 0);
-            if (!bEnd && (line[0] != '#'))
+            if (!bEnd  && (line[0] != '#'))
             {
-                if (sscanf(line + shift, "%15lf%15lf%15lf", &db1, &db2, &db3) != 3)
+                if (sscanf(line+shift, "%15lf%15lf%15lf", &db1, &db2, &db3) != 3)
                 {
-                    gmx_fatal(FARGS, "Did not find 3 coordinates for atom %d in %s\n", natoms + 1, infile);
+                    gmx_fatal(FARGS, "Did not find 3 coordinates for atom %d in %s\n",
+                              natoms+1, infile);
                 }
                 if ((nwanted != -1) && (natoms >= nwanted))
                 {
-                    gmx_fatal(FARGS, "Found more coordinates (%d) in %s than expected %d\n", natoms,
-                              infile, nwanted);
+                    gmx_fatal(FARGS,
+                              "Found more coordinates (%d) in %s than expected %d\n",
+                              natoms, infile, nwanted);
                 }
                 if (atoms)
                 {
-                    if (fr->bAtoms
-                        && (sscanf(line, "%5d%c%5s%c%5s%7d", &resnr, &c1, resnm, &c2, anm, &atnr) != 6))
+                    if (fr->bAtoms &&
+                        (sscanf(line, "%5d%c%5s%c%5s%7d", &resnr, &c1, resnm, &c2, anm, &atnr)
+                         != 6))
                     {
                         if (oldres >= 0)
                         {
@@ -120,10 +123,10 @@ static int read_g96_pos(char line[], t_symtab* symtab, FILE* fp, const char* inf
                         }
                         else
                         {
-                            resnr = 1;
-                            strncpy(resnm, "???", sizeof(resnm) - 1);
+                            resnr    = 1;
+                            strncpy(resnm, "???", sizeof(resnm)-1);
                         }
-                        strncpy(anm, "???", sizeof(anm) - 1);
+                        strncpy(anm, "???", sizeof(anm)-1);
                     }
                     atoms->atomname[natoms] = put_symtab(symtab, anm);
                     if (resnr != oldres)
@@ -132,13 +135,13 @@ static int read_g96_pos(char line[], t_symtab* symtab, FILE* fp, const char* inf
                         newres++;
                         if (newres >= atoms->nr)
                         {
-                            gmx_fatal(FARGS, "More residues than atoms in %s (natoms = %d)", infile,
-                                      atoms->nr);
+                            gmx_fatal(FARGS, "More residues than atoms in %s (natoms = %d)",
+                                      infile, atoms->nr);
                         }
                         atoms->atom[natoms].resind = newres;
-                        if (newres + 1 > atoms->nres)
+                        if (newres+1 > atoms->nres)
                         {
-                            atoms->nres = newres + 1;
+                            atoms->nres = newres+1;
                         }
                         t_atoms_set_resinfo(atoms, natoms, symtab, resnm, resnr, ' ', 0, ' ');
                     }
@@ -158,8 +161,9 @@ static int read_g96_pos(char line[], t_symtab* symtab, FILE* fp, const char* inf
         }
         if ((nwanted != -1) && natoms != nwanted)
         {
-            fprintf(stderr, "Warning: found less coordinates (%d) in %s than expected %d\n", natoms,
-                    infile, nwanted);
+            fprintf(stderr,
+                    "Warning: found less coordinates (%d) in %s than expected %d\n",
+                    natoms, infile, nwanted);
         }
     }
 
@@ -168,11 +172,12 @@ static int read_g96_pos(char line[], t_symtab* symtab, FILE* fp, const char* inf
     return natoms;
 }
 
-static int read_g96_vel(char line[], FILE* fp, const char* infile, t_trxframe* fr)
+static int read_g96_vel(char line[], FILE *fp, const char *infile,
+                        t_trxframe *fr)
 {
-    gmx_bool bEnd;
-    int      nwanted, natoms = -1, shift;
-    double   db1, db2, db3;
+    gmx_bool   bEnd;
+    int        nwanted, natoms = -1, shift;
+    double     db1, db2, db3;
 
     nwanted = fr->natoms;
 
@@ -193,14 +198,15 @@ static int read_g96_vel(char line[], FILE* fp, const char* infile, t_trxframe* f
             bEnd = (strncmp(line, "END", 3) == 0);
             if (!bEnd && (line[0] != '#'))
             {
-                if (sscanf(line + shift, "%15lf%15lf%15lf", &db1, &db2, &db3) != 3)
+                if (sscanf(line+shift, "%15lf%15lf%15lf", &db1, &db2, &db3) != 3)
                 {
-                    gmx_fatal(FARGS, "Did not find 3 velocities for atom %d in %s", natoms + 1, infile);
+                    gmx_fatal(FARGS, "Did not find 3 velocities for atom %d in %s",
+                              natoms+1, infile);
                 }
                 if ((nwanted != -1) && (natoms >= nwanted))
                 {
-                    gmx_fatal(FARGS, "Found more velocities (%d) in %s than expected %d\n", natoms,
-                              infile, nwanted);
+                    gmx_fatal(FARGS, "Found more velocities (%d) in %s than expected %d\n",
+                              natoms, infile, nwanted);
                 }
                 if (fr->v)
                 {
@@ -213,19 +219,21 @@ static int read_g96_vel(char line[], FILE* fp, const char* infile, t_trxframe* f
         }
         if ((nwanted != -1) && (natoms != nwanted))
         {
-            fprintf(stderr, "Warning: found less velocities (%d) in %s than expected %d\n", natoms,
-                    infile, nwanted);
+            fprintf(stderr,
+                    "Warning: found less velocities (%d) in %s than expected %d\n",
+                    natoms, infile, nwanted);
         }
     }
 
     return natoms;
 }
 
-int read_g96_conf(FILE* fp, const char* infile, char** name, t_trxframe* fr, t_symtab* symtab, char* line)
+int read_g96_conf(FILE *fp, const char *infile, char **name, t_trxframe *fr,
+                  t_symtab *symtab, char *line)
 {
-    gmx_bool bAtStart, bTime, bAtoms, bPos, bVel, bBox, bEnd, bFinished;
-    int      natoms, nbp;
-    double   db1, db2, db3, db4, db5, db6, db7, db8, db9;
+    gmx_bool   bAtStart, bTime, bAtoms, bPos, bVel, bBox, bEnd, bFinished;
+    int        natoms, nbp;
+    double     db1, db2, db3, db4, db5, db6, db7, db8, db9;
 
     bAtStart = (ftell(fp) == 0);
 
@@ -274,7 +282,8 @@ int read_g96_conf(FILE* fp, const char* infile, char** name, t_trxframe* fr, t_s
                 do
                 {
                     bFinished = (fgets2(line, STRLEN, fp) == nullptr);
-                } while (!bFinished && (line[0] == '#'));
+                }
+                while (!bFinished && (line[0] == '#'));
                 sscanf(line, "%15" SCNd64 "%15lf", &(fr->step), &db1);
                 fr->time = db1;
             }
@@ -311,8 +320,8 @@ int read_g96_conf(FILE* fp, const char* infile, char** name, t_trxframe* fr, t_s
                 bEnd = (strncmp(line, "END", 3) == 0);
                 if (!bEnd && (line[0] != '#'))
                 {
-                    nbp = sscanf(line, "%15lf%15lf%15lf%15lf%15lf%15lf%15lf%15lf%15lf", &db1, &db2,
-                                 &db3, &db4, &db5, &db6, &db7, &db8, &db9);
+                    nbp = sscanf(line, "%15lf%15lf%15lf%15lf%15lf%15lf%15lf%15lf%15lf",
+                                 &db1, &db2, &db3, &db4, &db5, &db6, &db7, &db8, &db9);
                     if (nbp < 3)
                     {
                         gmx_fatal(FARGS, "Found a BOX line, but no box in %s", infile);
@@ -333,16 +342,18 @@ int read_g96_conf(FILE* fp, const char* infile, char** name, t_trxframe* fr, t_s
             }
             bFinished = TRUE;
         }
-    } while (!bFinished && (fgets2(line, STRLEN, fp) != nullptr));
+    }
+    while (!bFinished && (fgets2(line, STRLEN, fp) != nullptr));
 
     fr->natoms = natoms;
 
     return natoms;
 }
 
-void write_g96_conf(FILE* out, const char* title, const t_trxframe* fr, int nindex, const int* index)
+void write_g96_conf(FILE *out, const char *title, const t_trxframe *fr,
+                    int nindex, const int *index)
 {
-    t_atoms* atoms;
+    t_atoms *atoms;
     int      nout, i, a;
 
     atoms = fr->atoms;
@@ -379,8 +390,9 @@ void write_g96_conf(FILE* out, const char* title, const t_trxframe* fr, int nind
                 }
                 fprintf(out, "%5d %-5s %-5s%7d%15.9f%15.9f%15.9f\n",
                         (atoms->resinfo[atoms->atom[a].resind].nr) % 100000,
-                        *atoms->resinfo[atoms->atom[a].resind].name, *atoms->atomname[a],
-                        (i + 1) % 10000000, fr->x[a][XX], fr->x[a][YY], fr->x[a][ZZ]);
+                        *atoms->resinfo[atoms->atom[a].resind].name,
+                        *atoms->atomname[a], (i+1) % 10000000,
+                        fr->x[a][XX], fr->x[a][YY], fr->x[a][ZZ]);
             }
         }
         else
@@ -396,7 +408,8 @@ void write_g96_conf(FILE* out, const char* title, const t_trxframe* fr, int nind
                 {
                     a = i;
                 }
-                fprintf(out, "%15.9f%15.9f%15.9f\n", fr->x[a][XX], fr->x[a][YY], fr->x[a][ZZ]);
+                fprintf(out, "%15.9f%15.9f%15.9f\n",
+                        fr->x[a][XX], fr->x[a][YY], fr->x[a][ZZ]);
             }
         }
         fprintf(out, "END\n");
@@ -418,8 +431,9 @@ void write_g96_conf(FILE* out, const char* title, const t_trxframe* fr, int nind
                 }
                 fprintf(out, "%5d %-5s %-5s%7d%15.9f%15.9f%15.9f\n",
                         (atoms->resinfo[atoms->atom[a].resind].nr) % 100000,
-                        *atoms->resinfo[atoms->atom[a].resind].name, *atoms->atomname[a],
-                        (i + 1) % 10000000, fr->v[a][XX], fr->v[a][YY], fr->v[a][ZZ]);
+                        *atoms->resinfo[atoms->atom[a].resind].name,
+                        *atoms->atomname[a], (i+1) % 10000000,
+                        fr->v[a][XX], fr->v[a][YY], fr->v[a][ZZ]);
             }
         }
         else
@@ -435,7 +449,8 @@ void write_g96_conf(FILE* out, const char* title, const t_trxframe* fr, int nind
                 {
                     a = i;
                 }
-                fprintf(out, "%15.9f%15.9f%15.9f\n", fr->v[a][XX], fr->v[a][YY], fr->v[a][ZZ]);
+                fprintf(out, "%15.9f%15.9f%15.9f\n",
+                        fr->v[a][XX], fr->v[a][YY], fr->v[a][ZZ]);
             }
         }
         fprintf(out, "END\n");
@@ -443,12 +458,14 @@ void write_g96_conf(FILE* out, const char* title, const t_trxframe* fr, int nind
     if (fr->bBox)
     {
         fprintf(out, "BOX\n");
-        fprintf(out, "%15.9f%15.9f%15.9f", fr->box[XX][XX], fr->box[YY][YY], fr->box[ZZ][ZZ]);
-        if ((fr->box[XX][YY] != 0.0F) || (fr->box[XX][ZZ] != 0.0F) || (fr->box[YY][XX] != 0.0F)
-            || (fr->box[YY][ZZ] != 0.0F) || (fr->box[ZZ][XX] != 0.0F) || (fr->box[ZZ][YY] != 0.0F))
+        fprintf(out, "%15.9f%15.9f%15.9f",
+                fr->box[XX][XX], fr->box[YY][YY], fr->box[ZZ][ZZ]);
+        if ((fr->box[XX][YY] != 0.0f) || (fr->box[XX][ZZ] != 0.0f) || (fr->box[YY][XX] != 0.0f) ||
+            (fr->box[YY][ZZ] != 0.0f) || (fr->box[ZZ][XX] != 0.0f) || (fr->box[ZZ][YY] != 0.0f))
         {
-            fprintf(out, "%15.9f%15.9f%15.9f%15.9f%15.9f%15.9f", fr->box[XX][YY], fr->box[XX][ZZ],
-                    fr->box[YY][XX], fr->box[YY][ZZ], fr->box[ZZ][XX], fr->box[ZZ][YY]);
+            fprintf(out, "%15.9f%15.9f%15.9f%15.9f%15.9f%15.9f",
+                    fr->box[XX][YY], fr->box[XX][ZZ], fr->box[YY][XX],
+                    fr->box[YY][ZZ], fr->box[ZZ][XX], fr->box[ZZ][YY]);
         }
         fprintf(out, "\n");
         fprintf(out, "END\n");

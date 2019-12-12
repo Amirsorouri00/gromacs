@@ -67,7 +67,7 @@ TEST_F(GmxApiTest, RunnerBasicMD)
         // usual command line options settings for the tests
 
         context->setMDArgs(args);
-        auto session = system.launch(context);
+        auto           session = system.launch(context);
         EXPECT_TRUE(session != nullptr);
         gmxapi::Status status;
         ASSERT_NO_THROW(status = session->run());
@@ -82,8 +82,8 @@ TEST_F(GmxApiTest, RunnerBasicMD)
  */
 TEST_F(GmxApiTest, RunnerReinitialize)
 {
-    auto           context = std::make_shared<gmxapi::Context>();
-    gmxapi::MDArgs args    = makeMdArgs();
+    auto context = std::make_shared<gmxapi::Context>();
+    gmxapi::MDArgs                   args    = makeMdArgs();
 
     makeTprFile(20);
 
@@ -102,7 +102,7 @@ TEST_F(GmxApiTest, RunnerReinitialize)
         EXPECT_NE(gmx_get_stop_condition(), gmx_stop_cond_none);
 
         session->close();
-    } // allow system and session to be destroyed.
+    }           // allow system and session to be destroyed.
 
     {
         context->setMDArgs(args);
@@ -126,6 +126,7 @@ TEST_F(GmxApiTest, RunnerReinitialize)
 
         session->close();
     }
+
 }
 
 /*!
@@ -147,7 +148,7 @@ TEST_F(GmxApiTest, RunnerContinuedMD)
             gmxapi::MDArgs args = makeMdArgs();
 
             context->setMDArgs(args);
-            auto session = system.launch(context);
+            auto           session = system.launch(context);
             EXPECT_TRUE(session != nullptr);
             gmxapi::Status status;
             ASSERT_NO_THROW(status = session->run());
@@ -164,7 +165,7 @@ TEST_F(GmxApiTest, RunnerContinuedMD)
             args.emplace_back("20");
 
             context->setMDArgs(args);
-            auto session = system.launch(context);
+            auto           session = system.launch(context);
             EXPECT_TRUE(session != nullptr);
             gmxapi::Status status;
             ASSERT_NO_THROW(status = session->run());

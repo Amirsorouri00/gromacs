@@ -1,7 +1,7 @@
 #
 # This file is part of the GROMACS molecular simulation package.
 #
-# Copyright (c) 2015,2016,2017,2018,2019, by the GROMACS development team, led by
+# Copyright (c) 2015,2016,2017,2018, by the GROMACS development team, led by
 # Mark Abraham, David van der Spoel, Berk Hess, and Erik Lindahl,
 # and including many others, as listed in the AUTHORS file in the
 # top-level source directory and at http://www.gromacs.org.
@@ -50,12 +50,10 @@ import datetime
 import os
 import sys
 
-exec(open('conf-vars.py').read())
+execfile('conf-vars.py')
 sys.path.append(gmx_sphinx_extension_path)
 if releng_path and os.path.isdir(releng_path):
     sys.path.append(releng_path)
-if gmxapi_staging_path and os.path.isdir(gmxapi_staging_path):
-    sys.path.append(gmxapi_staging_path)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -77,12 +75,8 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinx.ext.extlinks',
     'sphinx.ext.napoleon',
-    'sphinx.ext.doctest',
-    'sphinx.ext.ifconfig',
-    'sphinx.ext.intersphinx',
     'sphinx.ext.mathjax',
-    'sphinx.ext.napoleon',
-    'sphinx.ext.todo',
+    'sphinx.ext.ifconfig',
     'gmxsphinx'
 ]
 extlinks = {'issue': ('https://redmine.gromacs.org/issues/%s',
@@ -171,7 +165,7 @@ rst_epilog += """
 .. |gmx-source-package-ftp| replace:: As ftp ftp://ftp.gromacs.org/pub/gromacs/gromacs-{gmx_version_string}.tar.gz
 .. |gmx-source-package-http| replace:: As http http://ftp.gromacs.org/pub/gromacs/gromacs-{gmx_version_string}.tar.gz
 .. |gmx-regressiontests-package| replace:: http://gerrit.gromacs.org/download/regressiontests-{regressiontest_version}.tar.gz
-.. _up-to-date installation instructions: http://manual.gromacs.org/documentation/current/install-guide/index.html
+.. _up-to-date installation instructions: http://www.gromacs.org/Documentation/Installation_Instructions
 .. _CUDA: http://www.nvidia.com/object/cuda_home_new.html
 .. _OpenCL: https://www.khronos.org/opencl/
 .. _OpenMPI: http://www.open-mpi.org
@@ -352,7 +346,7 @@ latex_show_pagerefs = True
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 if tags.has('do_man'):
-    exec(open('conf-man.py').read())
+    execfile('conf-man.py')
 
 # If true, show URL addresses after external links.
 #man_show_urls = False
@@ -383,7 +377,3 @@ texinfo_documents = [
 
 # Make it possible to use numbered labels for figures and tables
 numfig = True
-
-# -- Options for intersphinx extension ------------------------------------
-
-intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
